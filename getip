@@ -1,3 +1,5 @@
 #echo -n "var ip='" > localip.js
-ifconfig en0 | grep inet | grep -v inet6 | awk '{print "var ip=\""$2"\";"}' > localip.js
+ip=$(ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}')
+echo "var ip='"$ip"';" > localip.js
 echo "module.exports = ip;" >> localip.js
+sed -i -- "s/localhost/$ip/g" ios/reflect/AppDelegate.m
