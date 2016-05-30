@@ -3,14 +3,15 @@ import {
   Platform,
   AsyncStorage
 } from 'react-native';
+import ip from 'reflect/imports';
 
 class Model{
   constructor(name){
     this.protocol = 'http://';
     if(Platform.OS === 'ios') {
-      this.ip = 'localhost'
+      this.ip = ip ? ip : 'localhost'
     } else {
-      this.ip = '141.89.169.13';
+      this.ip = ip ? ip : 'localhost';
     }
     this.host = this.protocol + this.ip+':8084/';
     this.api = this.host+'api1/';

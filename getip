@@ -1,0 +1,3 @@
+#echo -n "var ip='" > localip.js
+ifconfig en0 | grep inet | grep -v inet6 | awk '{print "var ip=\""$2"\";"}' > localip.js
+echo "module.exports = ip;" >> localip.js

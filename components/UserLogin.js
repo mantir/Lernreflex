@@ -18,7 +18,8 @@ import {
   Router,
   Loader,
   User,
-  CompetenceList
+  CompetenceList,
+  InputScrollView
 } from 'reflect/imports';
 /*Props need to contain a onLogin function which will be called after the login was successfull*/
 
@@ -71,7 +72,7 @@ class UserLogin extends Component{
   render(){
     var type = this.props.type;
     return <View style={styles.wrapper}>
-        <ScrollView style={styles.user.login}>
+        <InputScrollView style={styles.user.login}>
         <TextInput
           ref="username"
           onChangeText={(username) => this.setState({username})}
@@ -100,7 +101,7 @@ class UserLogin extends Component{
           placeholder='Passwort'>
         </TextInput>
         {this._renderLoginButton()}
-      </ScrollView>
+      </InputScrollView>
     </View>
   }
 }

@@ -12,7 +12,8 @@ import {
 
 import {
   styles,
-  Competence
+  Competence,
+  InputScrollView
 } from 'reflect/imports';
 
 class CompetenceCreate extends Component{
@@ -93,7 +94,7 @@ class CompetenceCreate extends Component{
   render(){
     var type = this.props.type;
     return <View style={styles.wrapper}>
-        <ScrollView keyboardDismissMode="interactive" ref="scrollView">
+        <InputScrollView keyboardDismissMode="interactive" ref="scrollView">
         <TextInput
           ref="title"
           onChangeText={(title) => this.setState({title})}
@@ -133,7 +134,7 @@ class CompetenceCreate extends Component{
         <TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.createCompetence()}>
           <Text style={[styles._.buttonText, styles._.big]}>Erstellen</Text>
         </TouchableHighlight>
-      </ScrollView>
+      </InputScrollView>
     </View>
   }
 }

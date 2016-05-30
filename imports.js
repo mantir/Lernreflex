@@ -4,6 +4,8 @@
 export {default as Router} from 'reflect/Router';
 export {default as styles} from 'reflect/styles';
 export {default as Loader} from 'reflect/components/Loader';
+export {default as InputScrollView} from 'reflect/components/InputScrollView'
+export {default as ip} from 'reflect/localip'
 
 /* Models */
 export {default as User} from 'reflect/models/User';
