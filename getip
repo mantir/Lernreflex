@@ -2,4 +2,8 @@
 ip=$(ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}')
 echo "var ip='"$ip"';" > localip.js
 echo "module.exports = ip;" >> localip.js
-sed -i -- "s/localhost/$ip/g" ios/reflect/AppDelegate.m
+#Change IP in iOS project
+url="//.*:8081/index.ios.bundle"
+sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/reflect/AppDelegate.m
+#Change IP in COMPBASE
+sed -i -- "s/RESTURLCompetence.*/RESTURLCompetence = \"http:\/\/$ip:8084\";/g" /Users/ast/Projects/COMPBASE/util/src/main/java/config/MagicStrings.java

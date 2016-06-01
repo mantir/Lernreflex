@@ -3,18 +3,20 @@ import {
   Platform,
   AsyncStorage
 } from 'react-native';
-import ip from 'reflect/imports';
+import ip from 'reflect/localip';
 
 class Model{
   constructor(name){
     this.protocol = 'http://';
     if(Platform.OS === 'ios') {
-      this.ip = ip ? ip : 'localhost'
+      this.ip = ip.ip ? ip.ip : 'localhost'
     } else {
-      this.ip = ip ? ip : 'localhost';
+      this.ip = ip.ip ? ip.ip : 'localhost';
     }
     this.host = this.protocol + this.ip+':8084/';
-    this.api = this.host+'api1/';
+    this.api1 = this.host+'api1/';
+    this.api0 = this.host+'competences/';
+    this.api = this.api1;
     this.headers = {
       //'Accept' : 'application/json',
       //'Content-Type' : 'application/json',
@@ -25,6 +27,15 @@ class Model{
       'Content-Type' : 'application/json',
       //'Host' : this.host
     };
+  }
+
+  setApi(num){
+    if(num == 0){
+      this.api = this.api0;
+    }
+    if(num == 1){
+      this.api = this.api1;
+    }
   }
 
   put(url, body){

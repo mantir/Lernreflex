@@ -37,6 +37,13 @@ class Competence extends Model{
   getCompetences(){
     return this.getItem('competences', {}).then(this.mapToNumericalKeys);
   }
+
+  addLearningTemplate(){
+
+  }
+  addCourse(){
+    
+  }
 }
 
 module.exports = Competence;
