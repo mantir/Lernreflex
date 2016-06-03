@@ -1,7 +1,14 @@
-#echo -n "var ip='" > localip.js
-ip=$(ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}')
+#!/bin/bash
+echo "$1"
+if [ -z $1 ];
+then
+  ip=$(ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}')
+else
+  ip="$1"
+fi
+echo $ip
 echo "var ip='"$ip"';" > localip.js
-echo "module.exports = ip;" >> localip.js
+echo "module.exports = {ip:ip};" >> localip.js
 #Change IP in iOS project
 url="//.*:8081/index.ios.bundle"
 sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/reflect/AppDelegate.m
