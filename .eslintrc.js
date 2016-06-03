@@ -20,6 +20,7 @@ module.exports = {
             "error",
             "unix"
         ],
+        "no-console": ["error", { allow: ["log", "warn", "error"] }],
         "quotes": [
             "error",
             "single"
