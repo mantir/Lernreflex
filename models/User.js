@@ -7,6 +7,7 @@ class User extends Model{
     this.urls = {
       competences: ''
     }
+    this.setApi(1);
   }
 
   save(obj){
@@ -14,11 +15,11 @@ class User extends Model{
   }
 
   generateID(obj){
-    
+
   }
 
   tryLogin(user, password){
-    return this.get(this.api+'users/'+user+'/exists', {password:password});
+    return this.get('users/'+user+'/exists', {password:password});
   }
 
   login(username, password){

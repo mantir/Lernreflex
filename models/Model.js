@@ -27,6 +27,7 @@ class Model{
       'Content-Type' : 'application/json',
       //'Host' : this.host
     };
+    this.definition = false;
   }
 
   setApi(num){
@@ -53,6 +54,7 @@ class Model{
       headers: this.headers
     }
     var lim = '?';
+    if(params)
     Object.keys(params).forEach(key => {
       url += lim+key +'=' + encodeURIComponent(params[key]);
       lim = '&';
@@ -67,19 +69,50 @@ class Model{
   }
 
   fetch(url, req){
+    url = this.api+url;
     this.lastRequest = {url: url, req: req};
     return fetch(url, req).then((response) => {
       var contentType = response.headers.get('content-type');
+      //alert(contentType);
+      var checkFail = (d) => {
+        if(d.indexOf('Request failed') > -1)
+          throw 'Grizzly request failed.';
+        return d;
+      };
       if(contentType && contentType.indexOf('application/json') !== -1) {
-        return response.json();
+        return response.text().then((d) => {
+          try {
+             return JSON.parse(d);
+          } catch (e) {
+             return checkFail(d);
+          }
+        });
       } else {
-        return response.text();
+        return response.text().then(checkFail);
       }
     });
   }
 
   delete(url){
 
+  }
+
+  checkDefinition(obj){
+    if(!this.definition) return obj;
+    var error = [];
+    Object.keys(this.definition).map((def) => {
+      if(this.definition[def] == '*' && !obj[def]){
+        error.push(def);
+      }
+    });
+    Object.keys(obj).map((def) => {
+      if(!this.definition[def]){
+        delete obj[def];
+      }
+    });
+    if(error.length > 0)
+      throw 'Properties missing in ' + this.constructor.name + ': ' + error.join(', ');
+    return obj;
   }
 
   save(key, value){
@@ -108,6 +141,11 @@ class Model{
 
   removeLocal(key){
     return AsyncStorage.removeItem(this.getName(key));
+  }
+
+  log(d){
+    console.log(d);
+    return d;
   }
 
 

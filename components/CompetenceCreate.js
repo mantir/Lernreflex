@@ -9,10 +9,13 @@ import {
   Alert,
   NavigatorIOS,
 } from 'react-native';
+import Autocomplete from 'react-native-autocomplete-input';
 
 import {
   styles,
   Competence,
+  LearningTemplate,
+  User,
   InputScrollView
 } from 'reflect/imports';
 
@@ -22,34 +25,41 @@ class CompetenceCreate extends Component{
     this.state = {
       title:'',
       catchwords:[],
-      group:''
+      group:'',
+      groups:[]
     };
   }
 
   createCompetence(){
     var competence = new Competence();
+    var user = new User();
+    var learningTemplate = new LearningTemplate();
     //console.log(this.state.title);
-    competence.save({
-        competence: this.state.title,
-        catchwords: this.state.catchwords,
-        isGoal: this.props.type === 'goals'
-    })
-    .done(() => this.props.navigator.pop(), (error) => {
-        //Errorhandler
-        Alert.alert( 'Erstellen fehlgeschlagen', 'Hier steht bald der Fehler.', [
-          {text: 'Ok'}, ]);
+    user.isLoggedIn().done((d) => {
+      learningTemplate.save({
+        userName: d.username,
+        groupId: 'randomString',
+        selectedTemplate: this.state.group
+      })
+      .then(() => competence.save({
+          forCompetence: this.state.title,
+          catchwords: this.state.catchwords,
+          isGoal: this.props.type === 'goals',
+          subCompetences: [],
+          superCompetences: [],
+          learningProjectName: this.state.group
+      }))
+      .done(() => this.props.navigator.pop(), (error) => {
+          //Errorhandler
+          Alert.alert('Erstellen fehlgeschlagen', 'Hier steht bald der Fehler.', [
+            {text: 'Ok'},
+          ]);
+      });
     });
   }
 
   componentDidMount(){
-    /*var scrollViewPressHandler = this.refs.scrollView.scrollResponderHandleStartShouldSetResponderCapture;
-    this.refs.scrollView.scrollResponderHandleStartShouldSetResponderCapture = e => {
-      return false;
-        if (e.dispatchMarker.indexOf('buttonNext') > -1) {
-            return false;
-        }
-        return scrollViewPressHandler(e);
-    }*/
+
   }
 
   removeTag(i){
@@ -91,8 +101,20 @@ class CompetenceCreate extends Component{
     </View>
   }
 
+  _findGroup(query){
+    if (query === '') {
+      return [];
+    }
+    const { groups } = this.state;
+    const regex = new RegExp(`${query.trim()}`, 'i');
+    return groups.filter(group => group.title.search(regex) >= 0);
+  }
+
   render(){
     var type = this.props.type;
+    const {group} = this.state;
+    const groups = this._findGroup(group);
+    const comp = (s, s2) => s.toLowerCase().trim() === s2.toLowerCase().trim();
     return <View style={styles.wrapper}>
         <InputScrollView keyboardDismissMode="interactive" ref="scrollView">
         <TextInput
@@ -121,16 +143,25 @@ class CompetenceCreate extends Component{
           blurOnSubmit={false}
           placeholder="Tags hinzufügen (Mit Weiter bestätigen)">
         </TextInput>
-        <TextInput
+        <Autocomplete
           ref="group"
           onChangeText={(group) => this.setState({group})}
           onSubmitEditing={(event) => {}}
           value={this.state.group}
           multiline={false}
           style={styles.comp.input}
+          data={groups.length === 1 && comp(group, groups[0].title) ? [] : groups}
+          defaultValue={group}
           maxLength={styles.max.competenceGroup}
+          renderItem={({title}) => (
+            <TouchableOpacity onPress={() => this.setState({group: title})}>
+              <Text style={styles.itemText}>
+                {title}
+              </Text>
+            </TouchableOpacity>
+          )}
           placeholder="Einer Gruppe zuordnen">
-        </TextInput>
+        </Autocomplete>
         <TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.createCompetence()}>
           <Text style={[styles._.buttonText, styles._.big]}>Erstellen</Text>
         </TouchableHighlight>

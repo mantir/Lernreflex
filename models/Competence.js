@@ -2,6 +2,7 @@
 import Model from 'reflect/models/Model';
 
 class Competence extends Model{
+
   constructor(){
     super();
     this.urls = {
@@ -12,22 +13,33 @@ class Competence extends Model{
       time: {unit:'h', values:['< 10', '> 10', '> 25', '> 50', '> 100', '> 200', '> 500']},
       interest: {unit:'', values:['Klein', 'Mittel', 'Groß']}
     };
+    this.definition = {
+      operator: '*',
+      forCompetence: '*',
+      catchwords:['*'],
+      subCompetences: ['*'],
+      superCompetences: ['*'],
+      learningProjectName: '*'
+    };
+    this.setApi(1);
   }
 
   save(obj){
     var key = obj.isGoal ? 'goals' : 'competences';
-    let id = this.generateID(obj);
-    this.put(this.api+'competences/'+(id), obj).done((d) => console.log(d));
-    console.log(this.lastRequest);
-    obj.percent = obj.isGoal ? 0 : 100;
-    obj.type = 'competence';
-    return this.getItem(key, {})
-      .then((comps) => {comps[id] = obj; return comps;})
-      .then((comps) => super.save(key, comps));
+    obj.operator = 'operator';
+    obj = this.checkDefinition(obj);
+    if(obj){
+      let id = this.generateID(obj);
+      return this.put('competences/'+(id), obj).then(this.log);
+      console.log(this.lastRequest);
+      return this.getItem(key, {})
+        .then((comps) => {comps[id] = obj; return comps;})
+        .then((comps) => super.save(key, comps));
+    }
   }
 
   generateID(obj){
-    return obj.competence;
+    return obj.forCompetence;
   }
 
   getGoals(){
@@ -42,7 +54,7 @@ class Competence extends Model{
 
   }
   addCourse(){
-    
+
   }
 }
 
