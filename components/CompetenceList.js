@@ -40,6 +40,12 @@ class CompetenceList extends Component{
     this.unmounting = true;
   }
 
+  setState(input){
+    if(!this.unmounting){
+      super.setState(input);
+    }
+  }
+
   componentDidUpdate(){
     var _this = this;
     var competence = new Competence();
@@ -49,7 +55,7 @@ class CompetenceList extends Component{
     var type = this.props.type;
     if(type === 'goals') {
       competence.getGoals().done((goals) => {
-        if(goals.length && !_this.unmounting){
+        if(goals.length) {
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRows(goals),
             loaded: true
@@ -58,7 +64,7 @@ class CompetenceList extends Component{
       });
     } else {
       competence.getCompetences().done((competences) => {
-        if(competences.length && !_this.unmounting){
+        if(competences.length){
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRows(competences),
             loaded: true
