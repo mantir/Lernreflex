@@ -14,7 +14,7 @@ import {
 import CompetenceView from 'reflect/components/CompetenceView';
 import CourseView from 'reflect/components/CourseView';
 import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence} from 'reflect/imports';
+import {Router, styles, Competence, User, LearningTemplate} from 'reflect/imports';
 
 
 class Test extends Component{
@@ -34,15 +34,61 @@ class Test extends Component{
   }
 
   testCreateCompetence(){
-    let competence = {
-      operator: 'können',
-      competence: 'Ich kann sicher Auto fahren.',
-      catchwords:['Auto'],
-      learningProjectName: 'Real Life'
-    };
-    var c = new Competence();
-    c.save(competence).
-    done(() => alert('Test abgeschlossen.'));
+    var user = new User();
+    user.isLoggedIn().done((d) => {
+      if(!d){
+        return false;
+      }
+      let templateName = 'Real Life';
+      let learningTemplate = {
+        userName: d.username,
+        groupId: 'randomString',
+        selectedTemplate: templateName
+      };
+      let competence = {
+        //operator: 'können',
+        forCompetence: 'Ich kann sicher Lego fahren.',
+        catchwords:['Auto'],
+        subCompetences: [],
+        isGoal: true,
+        superCompetences: [],
+        learningProjectName: templateName
+      };
+      var l = new LearningTemplate();
+      var c = new Competence();
+      l.save(learningTemplate)
+      .then(() => c.save(competence))
+      .done((d) => alert(d + ' Test abgeschlossen.'));
+    });
+  }
+
+  testGetCompetences(){
+    var user = new User();
+    var competence = new Competence();
+    var learningTemplate = new LearningTemplate();
+    user.isLoggedIn().done((d) => {
+      if(!d){
+        return false;
+      }
+      let templateName = 'Real Life';
+      let l = {
+        userId: d.username,
+        groupId: 'randomString',
+      };
+      let c = {
+        //operator: 'können',
+        forCompetence: 'Ich kann sicher Lego fahren.',
+        catchwords:['Auto'],
+        subCompetences: [],
+        isGoal: true,
+        superCompetences: [],
+        learningProjectName: templateName
+      };
+
+      l.save(learningTemplate)
+      .then(() => c.save(competence))
+      .done((d) => alert(d + ' Test abgeschlossen.'));
+    });
   }
 
   componentDidMount(){
