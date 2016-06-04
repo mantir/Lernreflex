@@ -119,16 +119,17 @@ class Model{
     this.setItem(key, value);
   }
 
-  getName(key){
-    return this.constructor.name + '_' + key;
+  getName(key, name){
+    name = name ? name : this.constructor.name;
+    return name + '_' + key;
   }
 
   setItem(key, value){
     return AsyncStorage.setItem(this.getName(key), JSON.stringify(value));
   }
 
-  getItem(key, defaultValue){
-    return AsyncStorage.getItem(this.getName(key)).then((value) => { return value ? JSON.parse(value) : defaultValue; });
+  getItem(key, defaultValue, name){
+    return AsyncStorage.getItem(this.getName(key, name)).then((value) => { return value ? JSON.parse(value) : defaultValue; });
     //item ? JSON.parse(item) : defaultValue;
   }
   getAllKeys(){
@@ -149,7 +150,7 @@ class Model{
   }
 
   isLoggedIn(){
-    return this.getItem('auth', false);
+    return this.getItem('auth', false, 'User');
   }
 
 

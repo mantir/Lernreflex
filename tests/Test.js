@@ -23,24 +23,42 @@ class Test extends Component{
     super();
     var ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2,
-      sectionHeaderHasChanged : (s1, s2) => s1 !== s2
+      //sectionHeaderHasChanged : (s1, s2) => s1 !== s2
     });
+    this.testCompName = 'Ich kann sicher Lego fahren.';
+    this.testCompName2 = 'Ich kann fernseh gucken.';
+    this.tests = [
+      {id:1, name:'testCreateUser'},
+      {id:2, name:'testCreateCompetence'},
+      {id:3, name:'testCreateCourse'},
+      {id:4, name:'testGetCompetences'},
+    ];
     this.state = {
-      dataSource: ds,
+      dataSource: ds.cloneWithRows(this.tests),
       loaded: false
     };
     this.renderRow = this.renderRow.bind(this);
+    this.rowPressed = this.rowPressed.bind(this);
+    /*this.testCreateUser()
+    .then(this.testCreateCompetence)
+    .then(this.testCreateCourse)
+    .then(this.testGetCompetences);*/
+    //this.testCreateUser();
     //this.testCreateCompetence();
     //this.testGetCompetences();
-    //this.testCreateUser();
-    this.testCreateCourse();
+    //this.testCreateCourse();
+    this.user = new User();
+    this.competence = new Competence();
+    this.learningTemplate = new LearningTemplate();
+    this.course = new Course();
   }
 
   testCreateCompetence(){
     var user = new User();
-    user.isLoggedIn().done((d) => {
+    var _this = this;
+    return user.isLoggedIn().then((d) => {
       if(!d){
-        return false;
+        return ['not', 'not'];
       }
       let templateName = 'Real Life';
       let learningTemplate = {
@@ -50,7 +68,7 @@ class Test extends Component{
       };
       let competence = {
         //operator: 'können',
-        forCompetence: 'Ich kann sicher Lego fahren.',
+        forCompetence: _this.testCompName,
         catchwords:['Auto'],
         subCompetences: [],
         isGoal: true,
@@ -59,30 +77,31 @@ class Test extends Component{
       };
       var l = new LearningTemplate();
       var c = new Competence();
-      l.save(learningTemplate)
+      return l.save(learningTemplate)
       .then(() => c.save(competence))
-      .done((d) => alert(d + ' Test abgeschlossen.'));
+      .then((d) => [d, c.lastRequest]);
     });
   }
 
   testGetCompetences(){
-    var user = new User();
-    var competence = new Competence();
-    var learningTemplate = new LearningTemplate();
+    var user = this.user;
+    var competence = this.competence;
+    var learningTemplate = this.learningTemplate;
     return learningTemplate.getLearningTemplates()
       .then((d) => competence.getCompetences())
-      .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
+      .then((d) => [d, competence.lastRequest]);
   }
 
   testCreateCourse(){
+    console.log('user');
     var c = {
       courseId: 'randomString',
-      competences: ['Ich kann sicher Lego fahren.'],
+      competences: [this.testCompName, this.testCompName2],
       printableName: 'randomString'
     };
     var course = new Course();
-    course.save(c)
-    .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
+    return course.save(c)
+    .then((d) => [d, course.lastRequest]);
   }
 
   testCreateUser(){
@@ -92,9 +111,9 @@ class Test extends Component{
       lmsSystems:'moodle',
       courseContext:'university',
     };
-    var user = new User();
-    user.save(u)
-      .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
+    var user = this.user;
+    return user.save(u)
+      .then((d) => [d, user.lastRequest]);
   }
 
   componentDidMount(){
@@ -107,75 +126,30 @@ class Test extends Component{
 
   componentDidUpdate(){
     var _this = this;
-    var competence = new Competence();
-    //alert(this.props.type);
-    //competence.getAllKeys().done((keys) => console.log(keys));
-    //competence.removeLocal('goals');
-    var type = this.props.type;
-    if(type === 'goals') {
-      competence.getGoals().done((goals) => {
-        if(goals.length && !_this.unmounting){
-          _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRows(goals),
-            loaded: true
-          });
-        }
-      });
-    } else {
-      competence.getCompetences().done((competences) => {
-        if(competences.length && this.unmounting){
-          _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRows(competences),
-            loaded: true
-          });
-        }
-      });
-    }
+
   }
 
   rowPressed(rowData) {
-    //console.warn(styles.route);
-    if(rowData.type == 'competence'){
-      Router.route({
-        title: 'Lernziel',
-        id: 'goal',
-        component: CompetenceView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
-    } else if(rowData.type == 'course'){
-      Router.route({
-        title: 'Gruppe',
-        id: 'group',
-        component: CourseView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
-    }
+    this[rowData.name]().then((d) => {
+      d[0] = JSON.stringify(d[0]);
+      alert(d[0]+' '+rowData.name+' abgeschlossen.');
+      this.setState({lastRequest:JSON.stringify(d[1])})
+    });
   }
 
   renderRow(rowData){
-    if(rowData.type == 'competence'){
-      return <ListEntryCompetence
-        underlayColor={styles.list.liHover}
-        onPress={() => this.rowPressed(rowData)}
-        rowData={rowData}
-        style={styles.list.li} />
-    } else if(rowData.type == 'course'){
       return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
         <View>
           <View style={styles.list.rowContainer}>
             <View style={styles.list.textContainer}>
               <Text style={styles.list.headText}>
-                {rowData.title}
-              </Text>
-              <Text style={styles.list.right}>
-                {rowData.percent}%
+                {rowData.name}
               </Text>
             </View>
           </View>
           <View style={styles.list.separator} />
         </View>
       </TouchableHighlight>
-    }
   }
 
   render(){
@@ -185,6 +159,7 @@ class Test extends Component{
         dataSource={this.state.dataSource}
         renderRow={this.renderRow}>
       </ListView>
+      <Text>{'Last request: '+this.state.lastRequest}</Text>
     </View>
   }
 }

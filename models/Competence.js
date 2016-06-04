@@ -47,7 +47,7 @@ class Competence extends Model{
   }
 
   getCompetences(){
-    return this.isLoggedIn().then((d) => this.get('competences/', {userId:d.username, courseId:'university'}));
+    return this.isLoggedIn().then((d) => this.get('competences/', {userId:d.username, courseId:'randomString'}));
     this.getItem('competences', {}).then(this.mapToNumericalKeys);
   }
 

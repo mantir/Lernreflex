@@ -25,7 +25,7 @@ class Course extends Model{
   }
 
   generateID(obj){
-    return obj.selectedTemplate;
+    return obj.courseId;
   }
 
   getCourses(params){
