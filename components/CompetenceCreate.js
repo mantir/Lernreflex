@@ -16,6 +16,7 @@ import {
   Competence,
   LearningTemplate,
   User,
+  Loader,
   InputScrollView
 } from 'reflect/imports';
 
@@ -35,6 +36,8 @@ class CompetenceCreate extends Component{
     var user = new User();
     var learningTemplate = new LearningTemplate();
     //console.log(this.state.title);
+    this.setState({loading:true});
+    var _this = this;
     user.isLoggedIn().done((d) => {
       learningTemplate.save({
         userName: d.username,
@@ -54,12 +57,13 @@ class CompetenceCreate extends Component{
           Alert.alert('Erstellen fehlgeschlagen', 'Hier steht bald der Fehler.', [
             {text: 'Ok'},
           ]);
+          _this.setState({loading:false});
       });
     });
   }
 
   createCourse(){
-    
+
   }
 
   componentDidMount(){
@@ -114,6 +118,15 @@ class CompetenceCreate extends Component{
     return groups.filter(group => group.title.search(regex) >= 0);
   }
 
+  _renderButton(){
+    if(!this.state.loading) {
+      return <TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.createCompetence()}>
+      <Text style={[styles._.buttonText, styles._.big]}>Erstellen</Text>
+    </TouchableHighlight>} else {
+      return <Loader color={styles._.primary} />
+    }
+  }
+
   render(){
     var type = this.props.type;
     const {group} = this.state;
@@ -130,6 +143,7 @@ class CompetenceCreate extends Component{
           style={styles.comp.titleInput}
           maxLength={styles.max.competenceTitle}
           autoFocus={true}
+          editable={!this.state.loading}
           onSubmitEditing={() => this.refs.tag.focus()}
           placeholder={this.props.inputTitle}>
         </TextInput>
@@ -141,6 +155,7 @@ class CompetenceCreate extends Component{
           onBlur={(event) => this.addTag(true)}
           value={this.state.tag}
           multiline={false}
+          editable={!this.state.loading}
           style={styles.comp.input}
           maxLength={styles.max.competenceCatchwords}
           returnKeyType="next"
@@ -153,6 +168,7 @@ class CompetenceCreate extends Component{
           onSubmitEditing={(event) => {}}
           value={this.state.group}
           multiline={false}
+          editable={!this.state.loading}
           style={styles.comp.input}
           data={groups.length === 1 && comp(group, groups[0].title) ? [] : groups}
           defaultValue={group}
@@ -166,9 +182,7 @@ class CompetenceCreate extends Component{
           )}
           placeholder="Einer Gruppe zuordnen">
         </Autocomplete>
-        <TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.createCompetence()}>
-          <Text style={[styles._.buttonText, styles._.big]}>Erstellen</Text>
-        </TouchableHighlight>
+        {this._renderButton()}
       </InputScrollView>
     </View>
   }

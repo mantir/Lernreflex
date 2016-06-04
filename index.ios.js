@@ -43,7 +43,7 @@ constructor(){
     _this.loggedIn = isIn;
     this.setState({loggedIn: isIn});
   });
-  this.test();
+  //this.test();
 }
 
 test(){

@@ -30,12 +30,16 @@ class Competence extends Model{
     obj = this.checkDefinition(obj);
     if(obj){
       let id = this.generateID(obj);
-      return this.put('competences/'+(id), obj).then(this.log);
+      //return this.put('competences/'+(id), obj).then(this.log);
       console.log(this.lastRequest);
       return this.getItem(key, {})
         .then((comps) => {comps[id] = obj; return comps;})
         .then((comps) => super.save(key, comps));
     }
+  }
+
+  asssess(obj){
+    return this.put('progress/'+obj.user+'/competences/', obj);
   }
 
   generateID(obj){
@@ -47,8 +51,8 @@ class Competence extends Model{
   }
 
   getCompetences(){
-    return this.isLoggedIn().then((d) => this.get('competences/', {userId:d.username, courseId:'randomString'}));
-    this.getItem('competences', {}).then(this.mapToNumericalKeys);
+    //return this.isLoggedIn().then((d) => this.get('competences/', {userId:d.username, courseId:'randomString'}));
+    return this.getItem('competences', {}).then(this.mapToNumericalKeys);
   }
 
   addLearningTemplate(){
