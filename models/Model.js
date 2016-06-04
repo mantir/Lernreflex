@@ -54,43 +54,60 @@ class Model{
       headers: this.headers
     }
     var lim = '?';
-    if(params)
-    Object.keys(params).forEach(key => {
-      url += lim+key +'=' + encodeURIComponent(params[key]);
-      lim = '&';
-    });
+    var nocache;
+    if(params){
+      if(params.nocache){
+        nocache = true;
+        delete params.nocache;
+      }
+      Object.keys(params).forEach(key => {
+        url += lim+key +'=' + encodeURIComponent(params[key]);
+        lim = '&';
+      });
+    }
     //alert(url);
     //return Promise.resolve();
-    return this.fetch(url, req);
+    return this.fetch(url, req, nocache);
   }
 
   post(url){
 
   }
 
-  fetch(url, req){
+  fetch(url, req, nocache){
     url = this.api+url;
-    this.lastRequest = {url: url, req: req};
-    return fetch(url, req).then((response) => {
+    const delay = 10*1000; //Abstand zwischen 2 gleichen GET-Requests (Sonst aus Cache)
+    var request = this.lastRequest = {url: url, req: req};
+    var caching = req.method.toUpperCase() === 'GET' && !nocache;
+    var callback = (response) => {
       var contentType = response.headers.get('content-type');
       //alert(contentType);
-      var checkFail = (d) => {
+      var processResponse = (d) => {
         if(d.indexOf('Request failed') > -1)
           throw 'Grizzly request failed.';
+        if(caching){ //
+          return this.setItem(request.url, d, true).then(() => d);
+        }
         return d;
       };
       if(contentType && contentType.indexOf('application/json') !== -1) {
         return response.text().then((d) => {
           try {
-             return JSON.parse(d);
+             return processResponse(JSON.parse(d));
           } catch (e) {
-             return checkFail(d);
+             return processResponse(d);
           }
         });
       } else {
-        return response.text().then(checkFail);
+        return response.text().then(processResponse);
       }
-    });
+    }
+    if(caching){
+      return this.getItem(request.url, false, false, true)
+      .then((d) => d && Date.now() - d < delay ? this.getItem(request.url, {}) : fetch(url, request))
+      .then(callback);
+    }
+    return fetch(url, req).then(callback);
   }
 
   delete(url){
@@ -124,12 +141,19 @@ class Model{
     return name + '_' + key;
   }
 
-  setItem(key, value){
-    return AsyncStorage.setItem(this.getName(key), JSON.stringify(value));
+  setItem(key, value, time){
+    return AsyncStorage.setItem(this.getName(key), JSON.stringify(value)).then((d) => {
+      if(time)
+        return AsyncStorage.setItem(this.getName(key)+'_time', Date.now());
+      return d;
+    })
   }
-
-  getItem(key, defaultValue, name){
-    return AsyncStorage.getItem(this.getName(key, name)).then((value) => { return value ? JSON.parse(value) : defaultValue; });
+  /*
+  *
+  */
+  getItem(key, defaultValue, name, time){
+    time = time ? '_time' : '';
+    return AsyncStorage.getItem(this.getName(key, name)+time).then((value) => { return value ? JSON.parse(value) : defaultValue; });
     //item ? JSON.parse(item) : defaultValue;
   }
   getAllKeys(){

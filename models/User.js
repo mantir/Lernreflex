@@ -28,7 +28,7 @@ class User extends Model{
   }
 
   tryLogin(user, password){
-    return this.get('users/'+user+'/exists', {password:password});
+    return this.get('users/'+user+'/exists', {password:password, nocache:true});
   }
 
   login(username, password){
