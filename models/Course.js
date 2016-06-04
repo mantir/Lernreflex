@@ -1,23 +1,23 @@
 'use strict'
 import Model from 'reflect/models/Model';
 
-class LearningTemplate extends Model{
+class Course extends Model{
   constructor(){
     super();
     this.definition = {
-        userName: '*',
-        groupId: '*',
-        selectedTemplate: '*'
+        courseId: '*',
+        competences: ['*'],
+        printableName: '*'
     };
     this.setApi(1);
   }
 
   save(obj){
-    let key = 'learningTemplates';
+    let key = 'courses';
     let id = this.generateID(obj);
     obj = this.checkDefinition(obj);
     if(obj){
-      return this.put('learningtemplates/'+(id), obj);
+      return this.put('courses/'+(id), obj);
       return this.getItem(key, {})
         .then((comps) => {comps[id] = obj; return comps;})
         .then((comps) => super.save(key, comps));
@@ -28,16 +28,16 @@ class LearningTemplate extends Model{
     return obj.selectedTemplate;
   }
 
-  getLearningTemplates(params){
+  getCourses(params){
     return this.isLoggedIn().then((d) => {
       let l = {
         userId: d.username,
         groupId: 'randomString',
       };
-      return this.get('learningtemplates/', params);
+      return this.get('courses/', params);
     });
-    //this.getItem('learningTemplates', params).then(this.mapToNumericalKeys);
+    //this.getItem('courses', params).then(this.mapToNumericalKeys);
   }
 }
 
-module.exports = LearningTemplate;
+module.exports = Course;

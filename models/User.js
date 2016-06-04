@@ -7,11 +7,20 @@ class User extends Model{
     this.urls = {
       competences: ''
     }
+    this.definition = {
+      role:'*',
+      user:'*',
+      lmsSystems:'*',
+      courseContext:'*',
+    }
     this.setApi(1);
   }
 
   save(obj){
-
+    obj = this.checkDefinition(obj);
+    if(obj){
+      return this.put('users/'+obj.user, obj);
+    }
   }
 
   generateID(obj){

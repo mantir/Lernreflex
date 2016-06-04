@@ -58,6 +58,10 @@ class CompetenceCreate extends Component{
     });
   }
 
+  createCourse(){
+    
+  }
+
   componentDidMount(){
 
   }

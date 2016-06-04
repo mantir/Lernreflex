@@ -148,6 +148,10 @@ class Model{
     return d;
   }
 
+  isLoggedIn(){
+    return this.getItem('auth', false);
+  }
+
 
 }
 

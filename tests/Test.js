@@ -14,7 +14,7 @@ import {
 import CompetenceView from 'reflect/components/CompetenceView';
 import CourseView from 'reflect/components/CourseView';
 import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence, User, LearningTemplate} from 'reflect/imports';
+import {Router, styles, Competence, User, Course, LearningTemplate} from 'reflect/imports';
 
 
 class Test extends Component{
@@ -30,7 +30,10 @@ class Test extends Component{
       loaded: false
     };
     this.renderRow = this.renderRow.bind(this);
-    this.testCreateCompetence();
+    //this.testCreateCompetence();
+    //this.testGetCompetences();
+    //this.testCreateUser();
+    this.testCreateCourse();
   }
 
   testCreateCompetence(){
@@ -66,29 +69,32 @@ class Test extends Component{
     var user = new User();
     var competence = new Competence();
     var learningTemplate = new LearningTemplate();
-    user.isLoggedIn().done((d) => {
-      if(!d){
-        return false;
-      }
-      let templateName = 'Real Life';
-      let l = {
-        userId: d.username,
-        groupId: 'randomString',
-      };
-      let c = {
-        //operator: 'können',
-        forCompetence: 'Ich kann sicher Lego fahren.',
-        catchwords:['Auto'],
-        subCompetences: [],
-        isGoal: true,
-        superCompetences: [],
-        learningProjectName: templateName
-      };
+    return learningTemplate.getLearningTemplates()
+      .then((d) => competence.getCompetences())
+      .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
+  }
 
-      l.save(learningTemplate)
-      .then(() => c.save(competence))
-      .done((d) => alert(d + ' Test abgeschlossen.'));
-    });
+  testCreateCourse(){
+    var c = {
+      courseId: 'randomString',
+      competences: ['Ich kann sicher Lego fahren.'],
+      printableName: 'randomString'
+    };
+    var course = new Course();
+    course.save(c)
+    .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
+  }
+
+  testCreateUser(){
+    var u = {
+      role:'teacher',
+      user:'mkapp',
+      lmsSystems:'moodle',
+      courseContext:'university',
+    };
+    var user = new User();
+    user.save(u)
+      .done((d) => alert(JSON.stringify(d)+ ' Test abgeschlossen.'));
   }
 
   componentDidMount(){
