@@ -68,7 +68,12 @@ class CompetenceList extends Component{
         dataBlob[c.learningProjectName] = {title:c.learningProjectName, index:rowIDs.length - 1, type:'course'};
       }
       rowIDs[dataBlob[c.learningProjectName].index].push(c.forCompetence);
-      dataBlob[c.learningProjectName + ':' + c.forCompetence] = {competence:c.forCompetence, percent:10, type:'competence'}
+      dataBlob[c.learningProjectName + ':' + c.forCompetence] = {
+        competence:c.forCompetence,
+        percent:10,
+        type:'competence',
+        isGoal:this.props.type == 'goals'
+      }
     });
     this.once = true;
     //console.log(dataBlob, sectionIDs, rowIDs);

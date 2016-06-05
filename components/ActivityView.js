@@ -11,14 +11,13 @@ import {
   Platform,
   Slider
 } from 'react-native';
-import {styles, Router, Competence, CompetenceCreate, Icon, ListEntryCompetence} from 'reflect/imports';
-import ActivityView from 'reflect/components/ActivityView';
+import {styles, Router, Competence, Activity, Icon} from 'reflect/imports';
 
-class CompetenceView extends Component{
+class ActivityView extends Component{
 
   constructor(){
     super();
-    this.competence = new Competence();
+    this.competence = new Activity();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       currentAssessment:'progress',
@@ -28,19 +27,12 @@ class CompetenceView extends Component{
         time:5,
         interest:2
       },
-      subcompetences: ds.cloneWithRows([
-        {id:1, percent:75, type:'competence', competence:'Competence 1'},
-        {id:2, percent:15, type:'competence', competence:'Competence 2'},
-        {id:3, percent:20, type:'competence', competence:'Competence 3'},
-        {id:4, percent:20, type:'competence', competence:'Competence 4'},
-        {id:5, percent:20, type:'competence', competence:'Competence 5'},
-      ]),
-      activities: ds.cloneWithRows([
-        {id:1, percent:75, type:'activity', title:'Activity 1'},
-        {id:2, percent:15, type:'activity', title:'Activity 2'},
-        {id:3, percent:20, type:'activity', title:'Activity 3'},
-        {id:4, percent:20, type:'activity', title:'Activity 4'},
-        {id:5, percent:20, type:'activity', title:'Activity 5'},
+      comments: ds.cloneWithRows([
+        {id:1, percent:75, type:'comment', comment:'Activity 1'},
+        {id:2, percent:15, type:'comment', comment:'Activity 2'},
+        {id:3, percent:20, type:'comment', comment:'Activity 3'},
+        {id:4, percent:20, type:'comment', comment:'Activity 4'},
+        {id:5, percent:20, type:'comment', comment:'Activity 5'},
       ]),
     };
     this.state.sliderValue = this.state.assessment[this.state.currentAssessment];
@@ -52,14 +44,14 @@ class CompetenceView extends Component{
       Router.route({
         title: 'Lernziel',
         id: 'goal',
-        component: CompetenceView,
+        component: ActivityView,
         passProps: {data: rowData}
       }, this.props.navigator);
     } else if(rowData.type == 'activity'){
       Router.route({
         title: 'Aktivität',
         id: 'activity',
-        component: CompetenceView,
+        component: ActivityView,
         passProps: {data: rowData}
       }, this.props.navigator);
     }
@@ -67,7 +59,7 @@ class CompetenceView extends Component{
 
   renderRow(rowData){
     if(rowData.type == 'competence'){
-    return <ListEntryCompetence
+    return <ListEntryActivity
       underlayColor={styles.list.liHover}
       onPress={() => this.rowPressed(rowData)}
       rowData={rowData}
@@ -113,14 +105,9 @@ class CompetenceView extends Component{
     }.bind(this))
   }
 
-  subCompName(singular){
-    if(singular)
-      return this.props.data.isGoal ? 'Teilziel' : 'Teilkompetenz';
-    return this.props.data.isGoal ? 'Teilziele' : 'Teilkompetenzen';
-  }
-
   _renderTabs(){
-    var subCompName = this.subCompName();
+    var competence = this.props.data;
+    var subCompName = competence.isGoal ? 'Teilziele' : 'Teilkompetenzen';
     let btns = [
       {key:'subcompetences', name: subCompName, value:''},
       {key:'activities', name: 'Aktivitäten', value: ''},
@@ -131,6 +118,7 @@ class CompetenceView extends Component{
       var style = [styles._.tab];
       var style2 = [styles._.buttonText];
       if(btn.key === _this.state.currentTab){
+        let {tabActive, tabActiveText} = styles._;
         style.push(styles._.tabActive);
         style2.push(styles._.tabActiveText);
       }
@@ -146,24 +134,18 @@ class CompetenceView extends Component{
   _renderTabContent(){
     var content = this.state[this.state.currentTab];
     var button = null;
-    var route = {
-      title:'test',
-      id: this.state.currentTab == 'subcompetences' ? (this.props.type == 'goals' ? 'goal.add' : 'competence.add') : 'activity.add',
-      component: this.state.currentTab == 'subcompetences' ? CompetenceCreate : ActivityView,
-      passProps:{
-        data:{ superCompetence: 'this.props.data.competence' }
-      }
-    }
-    console.log(route);
     if(this.state.currentTab != 'users'){
       button = <TouchableHighlight
         key='button'
-        onPress={() => Router.route(route, this.props.navigator)}
+        onPress={() => Router.route({
+          id: this.state.currentTab == 'subcompetences' ? (this.props.type == 'goals' ? 'goal.add' : 'competence.add') : 'activity.add',
+          component: this.state.currentTab == 'subcompetences' ? ActivityCreate : ActivityView,
+          passProps:{
+            superActivity: this.props.data.competence
+          }
+        })}
         style={styles._.button}>
-        <Text style={styles._.buttonText}>
-          <Icon name="md-add" style={styles._.mt20} size={20} color='#FFF' />
-          {' '+(this.state.currentTab == 'subcompetences' ? this.subCompName(true) : 'Aktivität')+' hinzufügen'}
-        </Text>
+        <Text style={styles._.buttonText}><Icon name="md-add" size={20} color='#FFF' /> {"Hinzufügen"}</Text>
       </TouchableHighlight>}
 
     var list = <ListView
@@ -205,17 +187,6 @@ class CompetenceView extends Component{
     </ScrollView>
   }
 }
-/*
-<TouchableHighlight
-  onPress={() => Router.route({
-    id: this.props.type == 'goals' ? 'goal.add' : 'competence.add',
-    component: CompetenceCreate,
-    passProps:{
-      superCompetence: this.props.data.competence
-    }
-  }, this.props.navigator)}
-  style={styles.comp.addBtn}>
-  <Text style={styles._.buttonText}><Icon name="md-add" size={30} color={styles._.primary} /></Text>
-</TouchableHighlight>*/
 
-module.exports = CompetenceView;
+
+module.exports = ActivityView;

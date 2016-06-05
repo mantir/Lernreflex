@@ -13,6 +13,7 @@ var secondaryDark = '#ac5720';
 var secondaryBright = '#f59150';
 var white = '#FFF';
 var gray = '#333';
+var lightGray = '#EEE';
 var topHeight = 50;
 
 var general = StyleSheet.create({
@@ -25,6 +26,31 @@ var general = StyleSheet.create({
   },
   buttonActive:{
     backgroundColor:primaryBG
+  },
+  tab:{
+    flex:1,
+    backgroundColor: secondary,
+    justifyContent:'center',
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderWidth:1,
+    borderColor:white
+  },
+  tabActive:{
+    backgroundColor:white
+  },
+  tabActiveText:{
+    fontSize: 14,
+    color: secondary,
+  },
+  otherBG:{
+    backgroundColor:lightGray,
+    paddingTop:10,
+    paddingBottom:10
+  },
+  tabContainer:{
+    flex:1,
+    flexDirection:'row'
   },
   buttonText: {
     color: '#fff',
@@ -78,6 +104,9 @@ var general = StyleSheet.create({
   },
   mt10:{
     marginTop:10
+  },
+  mt20:{
+    marginTop:20
   },
   row:{
     flex:1,
@@ -141,13 +170,20 @@ list.liHeadHover =  general.navBg;
 var competence = StyleSheet.create({
   title: {
     fontSize: 20,
-    margin: 10
+    margin: 20
   },
   sectionHead:{
-    fontSize: 16,
-    color: secondary,
-    margin: 10,
-    paddingBottom:0
+    fontSize:18,
+    marginBottom:5,
+    justifyContent:'center',
+    color:primaryBG,
+    flexDirection:'row',
+    alignSelf:'center',
+    flex:1
+  },
+  addBtn:{
+    flex:1,
+    alignSelf:'flex-end'
   },
   titleInput:{
     margin: ios ? 10 : 0,
@@ -194,7 +230,7 @@ var competence = StyleSheet.create({
   slider:{
     height: 40,
     margin:10,
-  }
+  },
 });
 
 var user = StyleSheet.create({
