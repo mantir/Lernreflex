@@ -108,6 +108,9 @@ var general = StyleSheet.create({
   mt20:{
     marginTop:20
   },
+  pt10:{
+    paddingTop:10
+  },
   row:{
     flex:1,
     flexWrap: 'wrap',

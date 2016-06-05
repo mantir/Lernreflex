@@ -147,11 +147,10 @@ class CompetenceView extends Component{
     var content = this.state[this.state.currentTab];
     var button = null;
     var route = {
-      title:'test',
-      id: this.state.currentTab == 'subcompetences' ? (this.props.type == 'goals' ? 'goal.add' : 'competence.add') : 'activity.add',
+      id: this.state.currentTab == 'subcompetences' ? (this.props.data.isGoal ? 'goal.add' : 'competence.add') : 'activity.add',
       component: this.state.currentTab == 'subcompetences' ? CompetenceCreate : ActivityView,
       passProps:{
-        data:{ superCompetence: 'this.props.data.competence' }
+        data:{ superCompetence: this.props.data.competence, type:'goals' }
       }
     }
     console.log(route);
@@ -161,7 +160,7 @@ class CompetenceView extends Component{
         onPress={() => Router.route(route, this.props.navigator)}
         style={styles._.button}>
         <Text style={styles._.buttonText}>
-          <Icon name="md-add" style={styles._.mt20} size={20} color='#FFF' />
+          <Icon name="ios-add-circle" size={14} color='#FFF' />
           {' '+(this.state.currentTab == 'subcompetences' ? this.subCompName(true) : 'Aktivität')+' hinzufügen'}
         </Text>
       </TouchableHighlight>}

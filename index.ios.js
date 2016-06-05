@@ -17,12 +17,11 @@ import {
   Navigator,
   Image
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import CompetenceCreate from 'reflect/components/CompetenceCreate';
+
 import Menu from 'reflect/components/Menu';
 import BadgeList from 'reflect/components/BadgeList';
 import UserLogin from 'reflect/components/UserLogin';
-import {styles, Router, CompetenceList, User, Test} from 'reflect/imports';
+import {styles, Router, CompetenceList, CompetenceCreate, User, Test, Icon} from 'reflect/imports';
 
 
 class reflect extends Component {

@@ -26,11 +26,11 @@ var Router = {
       break;
       case 'goal.add':
         route.title = 'Lernziel erstellen';
-        route.passProps = {type: 'goals', inputTitle:'Lernziel eingeben'};
+        route.passProps = {...route.passProps, type: 'goals', inputTitle:'Lernziel eingeben'};
       break;
       case 'competence.add':
         route.title = 'Kompetenz hinzufügen';
-        route.passProps = {type: 'competences', inputTitle:'Kompetenz eingeben'};
+        route.passProps = {...route.passProps, type: 'competences', inputTitle:'Kompetenz eingeben'};
       break;
       case 'user.login':
         route.title = 'Einloggen';

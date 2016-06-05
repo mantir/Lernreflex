@@ -11,7 +11,7 @@ class Competence extends Model{
     this.scales = {
       progress: {unit:'%', values:[0, 10,20,30,40,50,60,70,80,90,100]},
       time: {unit:'h', values:['< 10', '> 10', '> 25', '> 50', '> 100', '> 200', '> 500']},
-      interest: {unit:'', values:['Klein', 'Mittel', 'Groß']}
+      interest: {unit:'', values:['Sehr klein', 'Klein', 'Mittel', 'Groß', 'Sehr groß']}
     };
     this.definition = {
       operator: '*',

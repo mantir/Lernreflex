@@ -11,9 +11,11 @@ export {default as User} from 'reflect/models/User';
 export {default as Competence} from 'reflect/models/Competence';
 export {default as LearningTemplate} from 'reflect/models/LearningTemplate';
 export {default as Course} from 'reflect/models/Course';
+export {default as Activity} from 'reflect/models/Activity';
 
 /* Components */
 export {default as CompetenceList} from 'reflect/components/CompetenceList';
+export {default as CompetenceCreate} from 'reflect/components/CompetenceCreate';
 export {default as UserLogin} from 'reflect/components/UserLogin';
 export {default as Icon} from 'react-native-vector-icons/Ionicons';
 export {default as ListEntryCompetence} from 'reflect/components/ListEntryCompetence';
