@@ -18,12 +18,15 @@ class InputScrollView extends React.Component {
 
   render() {
     return (
-      <ScrollView style={this.props.style} keyboardShouldPersistTaps={true} keyboardDismissMode='on-drag'>
+      <ScrollView ref="inputScrollView" style={this.props.style} keyboardShouldPersistTaps={true} keyboardDismissMode='on-drag'>
         <View onStartShouldSetResponderCapture={this.handleCapture}>
           {this.props.children}
         </View>
       </ScrollView>
     );
+  }
+  getScrollResponder(){
+    return this.refs.inputScrollView.getScrollResponder();
   }
 
   handleCapture(e) {
