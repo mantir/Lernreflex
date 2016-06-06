@@ -71,7 +71,12 @@ var general = StyleSheet.create({
   },
   wrapper: {
     flex:1,
+    flexDirection:'column'
     //paddingTop: ios ? 0 : topHeight
+  },
+  viewWrapper: {//Does not work...
+    flex:1,
+    paddingTop: ios ? topHeight : topHeight
   },
   toolbar: {
     flex : 1,
@@ -123,6 +128,9 @@ var general = StyleSheet.create({
   },
   center:{
     alignSelf:'center'
+  },
+  highlight:{
+    color:secondary
   }
 });
 general.primary = primaryBG;
@@ -234,6 +242,16 @@ var competence = StyleSheet.create({
     height: 40,
     margin:10,
   },
+  commentInput: {
+    fontSize: 16,
+    padding:5,
+    flex:1,
+    flexDirection:'row',
+    alignSelf: 'stretch',
+  },
+  addComment:{
+    marginBottom: 20
+  }
 });
 
 var user = StyleSheet.create({
@@ -259,7 +277,6 @@ var user = StyleSheet.create({
   }
 });
 
-
 var styles = {
   _: general,
   list: list,
@@ -268,7 +285,8 @@ var styles = {
   max: {
     competenceTitle: 140,
     competenceCatchwords: 100,
-    competenceGroup: 50
+    competenceGroup: 50,
+    comment: 500
   },
   wrapper: general.wrapper,
 };

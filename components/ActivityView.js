@@ -1,7 +1,7 @@
 import React, {
   Component,
 } from 'react';
-import {
+import ReactNative, {
   TouchableHighlight,
   ListView,
   ScrollView,
@@ -9,38 +9,48 @@ import {
   View,
   NavigatorIOS,
   Platform,
+  TextInput,
   Slider
 } from 'react-native';
-import {styles, Router, Competence, Activity, Icon} from 'reflect/imports';
+import {styles, Router, Competence, Activity, ListEntryCompetence, Icon, InputScrollView} from 'reflect/imports';
+import Dimensions from 'Dimensions';
 
 class ActivityView extends Component{
 
   constructor(){
     super();
-    this.competence = new Activity();
+    this.activity = new Activity();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
-      currentAssessment:'progress',
-      currentTab: 'subcompetences',
-      assessment:{
-        progress:5,
-        time:5,
-        interest:2
-      },
+      currentTab: 'comments',
+      comment:'',
       comments: ds.cloneWithRows([
-        {id:1, percent:75, type:'comment', comment:'Activity 1'},
-        {id:2, percent:15, type:'comment', comment:'Activity 2'},
-        {id:3, percent:20, type:'comment', comment:'Activity 3'},
-        {id:4, percent:20, type:'comment', comment:'Activity 4'},
-        {id:5, percent:20, type:'comment', comment:'Activity 5'},
+        {id:1, percent:75, type:'comment', comment:'Comment 1'},
+        {id:2, percent:15, type:'comment', comment:'Comment 2'},
+        {id:3, percent:20, type:'comment', comment:'Comment 3'},
+        {id:4, percent:20, type:'comment', comment:'Comment 4'},
+        {id:5, percent:20, type:'comment', comment:'Comment 5'},
+        {id:5, percent:20, type:'comment', comment:'Comment 5'},
+        {id:5, percent:20, type:'comment', comment:'Comment 5'},
+        {id:5, percent:20, type:'comment', comment:'Comment 5'},
+      ]),
+      users: ds.cloneWithRows([
+        {id:1, percent:75, type:'user', name:'User 1'},
+        {id:2, percent:15, type:'user', name:'User 2'},
+        {id:3, percent:20, type:'user', name:'User 3'},
+        {id:4, percent:20, type:'user', name:'User 4'},
+        {id:5, percent:20, type:'user', name:'User 5'},
       ]),
     };
-    this.state.sliderValue = this.state.assessment[this.state.currentAssessment];
     this.render = this.render.bind(this);
   }
 
+  componentDidMount(){
+    this.setState({height:40});
+  }
+
   rowPressed(rowData) {
-    if(rowData.type == 'competence'){
+    if(rowData.type == 'activity'){
       Router.route({
         title: 'Lernziel',
         id: 'goal',
@@ -58,59 +68,16 @@ class ActivityView extends Component{
   }
 
   renderRow(rowData){
-    if(rowData.type == 'competence'){
-    return <ListEntryActivity
-      underlayColor={styles.list.liHover}
-      onPress={() => this.rowPressed(rowData)}
-      rowData={rowData}
-      style={styles.list.li} />
-  } else if(rowData.type == 'activity'){
-    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
-      <View>
-        <View style={styles.list.rowContainer}>
-          <View style={styles.list.textContainer}>
-            <Text style={styles.list.text}>
-              {rowData.title}
-            </Text>
-            <Text style={styles.list.right}>
-              {rowData.percent}%
-            </Text>
-          </View>
-        </View>
-        <View style={styles.list.separator} />
-      </View>
-    </TouchableHighlight>
-  }
-  }
-
-  _renderAssessment(){
-    let btns = [
-      {key:'progress', name: 'Fortschritt', value:this.state.assessment.progress},
-      {key:'time', name: 'Zeit', value: this.state.assessment.time},
-      {key:'interest', name: 'Interesse', value: this.state.assessment.interest},
-    ];
-    return btns.map(function(btn){
-      var style = [styles._.button];
-      var scale = this.competence.scales[btn.key];
-      if(btn.key === this.state.currentAssessment)
-        style.push(styles._.buttonActive);
-      return <View key={btn.key} style={styles._.col}>
-        <Text style={styles._.center}>{scale.values[btn.value]+scale.unit}</Text>
-        <TouchableHighlight
-          onPress={() => this.setState({currentAssessment:btn.key, sliderValue: this.state.assessment[btn.key]})}
-          style={style}>
-          <Text style={styles._.buttonText}>{btn.name}</Text>
-        </TouchableHighlight>
-      </View>
-    }.bind(this))
+    if(rowData.type == 'user'){
+      return <ListEntryCompetence type="user" rowData={rowData} />
+    } else if(rowData.type == 'comment'){
+      return <ListEntryCompetence type="comment" rowData={rowData} />
+    }
   }
 
   _renderTabs(){
-    var competence = this.props.data;
-    var subCompName = competence.isGoal ? 'Teilziele' : 'Teilkompetenzen';
     let btns = [
-      {key:'subcompetences', name: subCompName, value:''},
-      {key:'activities', name: 'Aktivitäten', value: ''},
+      {key:'comments', name: 'Kommentare', value:''},
       {key:'users', name: 'Mitlerner', value: ''},
     ];
     let _this = this;
@@ -123,68 +90,91 @@ class ActivityView extends Component{
         style2.push(styles._.tabActiveText);
       }
       return <TouchableHighlight
-          key={btn.key}
-          onPress={() => _this.setState({currentTab: btn.key})}
-          style={style}>
-          <Text style={style2}>{btn.name}</Text>
-        </TouchableHighlight>
+        key={btn.key}
+        onPress={() => _this.setState({currentTab: btn.key})}
+        style={style}>
+        <Text style={style2}>{btn.name}</Text>
+      </TouchableHighlight>
     })
   }
 
   _renderTabContent(){
     var content = this.state[this.state.currentTab];
-    var button = null;
-    if(this.state.currentTab != 'users'){
-      button = <TouchableHighlight
-        key='button'
-        onPress={() => Router.route({
-          id: this.state.currentTab == 'subcompetences' ? (this.props.type == 'goals' ? 'goal.add' : 'competence.add') : 'activity.add',
-          component: this.state.currentTab == 'subcompetences' ? ActivityCreate : ActivityView,
-          passProps:{
-            superActivity: this.props.data.competence
-          }
-        })}
-        style={styles._.button}>
-        <Text style={styles._.buttonText}><Icon name="md-add" size={20} color='#FFF' /> {"Hinzufügen"}</Text>
-      </TouchableHighlight>}
+    var input = null, spacer = null;
+    if(this.state.currentTab == 'comments'){
+      input = <View key="inputView" style={{flexDirection:'row'}}>
+        <View style={{flexDirection:'column', alignItems:'flex-start', flex:0.8}}>
 
+          <TextInput
+            key="input"
+            ref="newComment"
+            onChange={(event) => {
+              this.setState({comment:event.nativeEvent.text, height: event.nativeEvent.contentSize.height});
+              this._scrollToBottom('newComment');
+            }}
+            onFocus={() => this._scrollToBottom('newComment')}
+            value={this.state.comment}
+            numberOfLines={10}
+            multiline={true}
+            style={[styles.comp.input, styles.comp.commentInput, {height: Math.max(40, this.state.height)}]}
+            maxLength={styles.max.comment}
+            editable={!this.state.loading}
+            enablesReturnKeyAutomatically={true}
+            placeholder='Kommentieren ...'>
+          </TextInput>
+
+        </View>
+        <View style={{flexDirection:'column', alignItems:'center', flex:0.2}}>
+          <View style={{flexDirection:'row', alignItems:'flex-end', flex:1}}>
+            <TouchableHighlight underlayColor={styles._.primary} onPress={() => this.addComment()} style={styles.comp.addComment}>
+              <Text style={styles._.highlight}>
+                {"Senden"}
+              </Text>
+            </TouchableHighlight>
+          </View>
+        </View>
+      </View>
+    }
     var list = <ListView
       key='list'
       style={styles._.list}
       dataSource={content}
       renderRow={(rowData) => this.renderRow(rowData)}>
     </ListView>
-  return [list, button];
+    return [list, input, spacer];
   }
 
+  addComment(){
+    var comment = this.state.comment;
+    var competence = new Competence();
+  }
+
+  _scrollToBottom(refName) {
+    var _this = this;
+    setTimeout(() => {
+      let scrollResponder = _this.refs.scroller.getScrollResponder();
+      scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
+        ReactNative.findNodeHandle(_this.refs[refName]),
+        10, //additionalOffset
+        true
+      );
+    }, 1);
+  }
+
+
   render(){
-    var competence = this.props.data;
-    var subCompName = competence.isGoal ? 'Teilziele' : 'Teilkompetenzen';
-    return <ScrollView style={styles.wrapper}>
-      <Text style={styles.comp.title}>{competence.competence}</Text>
-      <View style={styles._.otherBG}>
-      <Text style={styles.comp.sectionHead}>Selbsteinschätzung</Text>
-      <View style={styles._.row}>
-        {this._renderAssessment()}
-      </View>
-      <Slider
-        ref="slider"
-        maximumValue={this.competence.scales[this.state.currentAssessment].values.length - 1}
-        minimumValue={0}
-        onValueChange={(value) => {
-          this.state.assessment[this.state.currentAssessment] = value;
-          this.setState({value: value});
-        }}
-        value={this.state.sliderValue}
-        step={1}
-        style={styles.comp.slider} />
-    </View>
+    var activity = this.props.data;
+    var subCompName = activity.isGoal ? 'Teilziele' : 'Teilkompetenzen';
+    //<View style={styles.viewWrapper}>
+    return <InputScrollView style={[styles.wrapper, {overflow:'hidden'}]} ref="scroller">
+      <Text style={[styles.comp.title]}>{activity.title}</Text>
         <View style={styles._.tabContainer}>
           {this._renderTabs()}
         </View>
         {this._renderTabContent()}
+      </InputScrollView>
+    //</View>
 
-    </ScrollView>
   }
 }
 
