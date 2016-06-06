@@ -22,7 +22,8 @@ class CompetenceView extends Component{
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       currentAssessment:'progress',
-      currentTab: 'subcompetences',
+      //currentTab: 'subcompetences',
+      currentTab: 'activities',
       assessment:{
         progress:5,
         time:5,
@@ -42,6 +43,13 @@ class CompetenceView extends Component{
         {id:4, percent:20, type:'activity', title:'Activity 4'},
         {id:5, percent:20, type:'activity', title:'Activity 5'},
       ]),
+      users: ds.cloneWithRows([
+        {id:1, percent:75, type:'user', name:'User 1'},
+        {id:2, percent:15, type:'user', name:'User 2'},
+        {id:3, percent:20, type:'user', name:'User 3'},
+        {id:4, percent:20, type:'user', name:'User 4'},
+        {id:5, percent:20, type:'user', name:'User 5'},
+      ]),
     };
     this.state.sliderValue = this.state.assessment[this.state.currentAssessment];
     this.render = this.render.bind(this);
@@ -59,36 +67,19 @@ class CompetenceView extends Component{
       Router.route({
         title: 'Aktivität',
         id: 'activity',
-        component: CompetenceView,
+        component: ActivityView,
         passProps: {data: rowData}
       }, this.props.navigator);
     }
   }
 
   renderRow(rowData){
-    if(rowData.type == 'competence'){
     return <ListEntryCompetence
+      type={rowData.type}
       underlayColor={styles.list.liHover}
       onPress={() => this.rowPressed(rowData)}
       rowData={rowData}
       style={styles.list.li} />
-  } else if(rowData.type == 'activity'){
-    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
-      <View>
-        <View style={styles.list.rowContainer}>
-          <View style={styles.list.textContainer}>
-            <Text style={styles.list.text}>
-              {rowData.title}
-            </Text>
-            <Text style={styles.list.right}>
-              {rowData.percent}%
-            </Text>
-          </View>
-        </View>
-        <View style={styles.list.separator} />
-      </View>
-    </TouchableHighlight>
-  }
   }
 
   _renderAssessment(){

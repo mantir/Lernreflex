@@ -159,6 +159,7 @@ class CompetenceList extends Component{
 
   renderRow(rowData){
       return <ListEntryCompetence
+        type='competence'
         underlayColor={styles.list.liHover}
         onPress={() => this.rowPressed(rowData)}
         rowData={rowData}
