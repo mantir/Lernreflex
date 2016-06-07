@@ -3,7 +3,7 @@ import Model from 'reflect/models/Model';
 
 class Badge extends Model{
   constructor(){
-    super();
+    super('Badge');
   }
 
   generateID(obj){

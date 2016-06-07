@@ -4,7 +4,7 @@ import Model from 'reflect/models/Model';
 class Competence extends Model{
 
   constructor(){
-    super();
+    super('Competence');
     this.urls = {
       competences: ''
     }

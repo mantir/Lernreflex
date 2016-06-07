@@ -3,7 +3,7 @@ import Model from 'reflect/models/Model';
 
 class Course extends Model{
   constructor(){
-    super();
+    super('Course');
     this.definition = {
         courseId: '*',
         competences: ['*'],

@@ -4,7 +4,7 @@ import Model from 'reflect/models/Model';
 class Activity extends Model{
 
   constructor(){
-    super();
+    super('Activity');
     this.urls = {
       activities: ''
     }

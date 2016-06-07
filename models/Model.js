@@ -6,7 +6,7 @@ import {
 import ip from 'reflect/localip';
 
 class Model{
-  constructor(name){
+  constructor(className){
     this.protocol = 'http://';
     if(Platform.OS === 'ios') {
       this.ip = ip.ip ? ip.ip : 'localhost'
@@ -27,6 +27,7 @@ class Model{
       'Content-Type' : 'application/json',
       //'Host' : this.host
     };
+    this.className = className; //Dont use this.constructor.name because it will be something else when building
     this.definition = false;
   }
 
@@ -128,7 +129,7 @@ class Model{
       }
     });
     if(error.length > 0)
-      throw 'Properties missing in ' + this.constructor.name + ': ' + error.join(', ');
+      throw 'Properties missing in ' + this.className + ': ' + error.join(', ');
     return obj;
   }
 
@@ -137,7 +138,7 @@ class Model{
   }
 
   getName(key, name){
-    name = name ? name : this.constructor.name;
+    name = name ? name : this.className;
     return name + '_' + key;
   }
 

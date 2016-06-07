@@ -3,7 +3,7 @@ import Model from 'reflect/models/Model';
 
 class LearningTemplate extends Model{
   constructor(){
-    super();
+    super('LearningTemplate');
     this.definition = {
         userName: '*',
         groupId: '*',

@@ -3,7 +3,7 @@ import Model from 'reflect/models/Model';
 
 class User extends Model{
   constructor(){
-    super();
+    super('User'); //Dont use this.constructor.name because it will be something else when building
     this.urls = {
       competences: ''
     }
