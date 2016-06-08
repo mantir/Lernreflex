@@ -17,11 +17,11 @@ import {
   ToolbarAndroid,
   BackAndroid
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+
+import Menu from 'reflect/components/Menu';
 import CompetenceView from 'reflect/components/CompetenceView';
-import CompetenceCreate from 'reflect/components/CompetenceCreate';
 import BadgeList from 'reflect/components/BadgeList';
-import {styles, Router, User, UserLogin, CompetenceList} from 'reflect/imports';
+import {styles, Router, User, UserLogin, Icon, CompetenceCreate, CompetenceList} from 'reflect/imports';
 
 
 var _navigator; // we fill this up upon on first navigation.
@@ -37,6 +37,7 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
 class reflect extends Component {
   constructor(){
     super();
+    this.position = 0;
     this.renderScene = this.renderScene.bind(this);
     this.routeMapper = {
       test: 4
@@ -44,6 +45,22 @@ class reflect extends Component {
     this.systemName = 'Reflect';
     this.user = new User();
     var _this = this;
+    this.initialRoute = {
+      title: 'Lernziele',
+      component: CompetenceList,
+      id: 'goals',
+      passProps:{
+        type:'goals'
+      }
+    };
+    this.loginRoute = {
+      title: this.systemName + ' Login',
+      id:'user.login',
+      component: UserLogin,
+      passProps: {
+        onLogin: () => this.onLogin()
+      }
+    };
     this.checkedLoggedIn = false;
     this.user.isLoggedIn().done((isIn) => {
       _this.checkedLoggedIn = true;
@@ -67,13 +84,13 @@ class reflect extends Component {
         if(route.id == 'goals')
         return (
           <TouchableHighlight style={styles._.toolbarRight} onPress={() => Router.route({id:'goal.add', component:CompetenceCreate}, navigator)} >
-            <Text style={styles._.toolbarText}>+</Text>
+            <Icon name="md-add" size={25} color='#FFF' />
             </TouchableHighlight>
         );
         if(route.id == 'competences')
         return (
           <TouchableHighlight style={styles._.toolbarRight} onPress={() => Router.route({id:'competence.add', component:CompetenceCreate}, navigator)} >
-            <Text style={styles._.toolbarText}>+</Text>
+            <Icon name="md-add" size={25} color='#FFF' />
           </TouchableHighlight>
         );
       },
@@ -90,11 +107,15 @@ class reflect extends Component {
   onLogin(){
     this.loggedIn = true;
     this.setState({loggedIn: true});
+    alert(1);
+    Router.route(this.initialRoute, _navigator, {reset:true});
   }
 
   onLogout(){
     this.loggedIn = false;
+    alert(2);
     this.setState({loggedIn: false});
+    Router.route(this.loginRoute, _navigator, {reset:true});
   }
 
   onActionSelected(position){
@@ -114,17 +135,35 @@ class reflect extends Component {
   renderScene(route, navigator){
     _navigator = navigator;
     var actions = [
-      {id:'goals', title: 'Lernziele', passProps:{type: 'goals'}, component: CompetenceList, show: 'always'},
-      {id:'badges', title: 'Badges', component: BadgeList, show: 'ifRoom'},
-      {id:'notifications', title: 'Benachrichtigungen', component: CompetenceList, icon:require('./img/sign-check-icon.png'), show: 'always'},
-      {id:'recommendations', title: 'Empfehlungen', component: CompetenceList, show: 'ifRoom'},
-      {id:'competences', title: 'Kompetenzen', component: CompetenceList, show: 'always'}
+      {id:'goals', iconName:Router.icons.goals, title: '', passProps:{type: 'goals'}, component: CompetenceList, show: 'always'},
+      {id:'badges', iconName:Router.icons.badges, title: '', component: BadgeList, show: 'always'}, //ifRoom
+      {id:'notifications', iconName:Router.icons.notifications, title: '', component: CompetenceList, show: 'always'},
+      //{id:'recommendations', iconName:Router.icons.recommendations, title: '', component: CompetenceList, show: 'ifRoom'}, //ifRoom
+      {id:'competences', iconName:Router.icons.competences, title: '', component: CompetenceList, show: 'always'},
+      {id:'menu', passProps: { onLogout: () => this.onLogout() }, iconName:Router.icons.menu, title: '', component: Menu, show: 'always'}
     ];
     let current = -1;
-    actions = actions.filter((a, index) => { if(a.id == route.id) current = index; return a.id != route.id});
+    actions = actions.map((a, index) => {
+      if(a.id == route.id) {
+        current = index;
+        a.iconColor = styles._.secondary;
+        a.iconSize = 35;
+      } else {
+        a.iconColor = '#FFF'; //styles._.primaryBrighter;
+        a.iconSize = 30;
+      }
+      return a;
+    });
+    if(current > -1) {
+      this._position = current;
+    } else {
+      //actions[this._position].iconColor = styles._.secondary;
+      //actions[this._position].iconSize = 35;
+    }
 
     let _this = this;
     let onSelect = (position) => {
+      _this.position = position;
       let route = actions[position];
       Router.route(route, navigator, {reset: true});
     };
@@ -135,26 +174,12 @@ class reflect extends Component {
 
   }
   render() {
-    var initialRoute = {
-      title: 'Lernziele',
-      component: CompetenceList,
-      id: 'goals',
-      passProps:{
-        type:'goals'
-      }
-    };
     if(!this.checkedLoggedIn) {
       return null
     }
+    var initialRoute = this.initialRoute;
     if(!this.loggedIn) {
-      initialRoute = {
-        title: this.systemName + ' Login',
-        id:'user.login',
-        component: UserLogin,
-        passProps: {
-          onLogin: () => this.onLogin()
-        }
-      };
+      initialRoute = this.loginRoute;
     }
     return (
       <Navigator ref='nav'
