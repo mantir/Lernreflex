@@ -134,6 +134,7 @@ var general = StyleSheet.create({
   }
 });
 general.primary = primaryBG;
+general.primaryBrighter = brighterPrimary;
 general.secondary = secondary;
 general.navBg = primaryBG;
 general.navColor = '#FFF';
