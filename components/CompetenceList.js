@@ -21,6 +21,7 @@ class CompetenceList extends Component{
 
   constructor(){
     super();
+    this.unmounting = true;
     var ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2,
       sectionHeaderHasChanged : (s1, s2) => s1 !== s2,
@@ -36,6 +37,7 @@ class CompetenceList extends Component{
   }
 
   componentDidMount(){
+    this.unmounting = false;
     this.componentDidUpdate();
   }
 
@@ -127,6 +129,7 @@ class CompetenceList extends Component{
         passProps: {data: rowData}
       }, this.props.navigator);
     }
+    return true;
   }
 
   getSectionData(dataBlob, sectionID){

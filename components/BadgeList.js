@@ -20,6 +20,7 @@ class BadgeList extends Component{
 
   constructor(){
     super();
+    this.unmounting = true;
     var ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2,
       sectionHeaderHasChanged : (s1, s2) => s1 !== s2
@@ -32,7 +33,12 @@ class BadgeList extends Component{
   }
 
   componentDidMount(){
+    this.unmounting = false;
     this.componentDidUpdate();
+  }
+
+  componentWillUnmount(){
+    this.unmounting = true;
   }
 
   componentDidUpdate(){
@@ -43,7 +49,7 @@ class BadgeList extends Component{
     //badge.removeLocal('goals');
     var type = this.props.type;
     badge.getBadges().done((badges) => {
-      if(badges.length){
+      if(badges.length && !_this.unmounting){
         _this.setState({
           dataSource: _this.state.dataSource.cloneWithRows(badges),
           loaded: true
