@@ -18,6 +18,9 @@ var Router = {
         route.passProps = {type:'goals'};
         route.title = 'Lernziele';
       break;
+      case 'competences':
+        route.title = 'Kompetenzen';
+      break;
       case 'goal':
         route.title = 'Lernziel';
       break;
@@ -37,6 +40,12 @@ var Router = {
       break;
       case 'menu':
         route.title = 'Menü';
+      break;
+      case 'notifications':
+        route.title = 'Benachrichtigungen';
+      break;
+      case 'badges':
+        route.title = 'Badges';
       break;
     }
     if(!navigator){
