@@ -22,6 +22,7 @@ import Menu from 'reflect/components/Menu';
 import BadgeList from 'reflect/components/BadgeList';
 import UserLogin from 'reflect/components/UserLogin';
 import {styles, Router, CompetenceList, CompetenceCreate, User, Test, Icon} from 'reflect/imports';
+import UITest from 'reflect/tests/UITest'
 
 
 class reflect extends Component {
@@ -42,12 +43,15 @@ constructor(){
     _this.loggedIn = isIn;
     this.setState({loggedIn: isIn});
   });
-  //this.test();
+  this.test();
 }
 
 test(){
-  this.render = () => {
+/*  this.render = () => {
     return <Test />;
+  };*/
+  this.render = () => {
+    return <UITest />;
   };
 }
 

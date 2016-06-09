@@ -1,5 +1,6 @@
 'use strict'
 import Model from 'reflect/models/Model';
+import {LearningTemplate} from 'reflect/imports'
 
 class Competence extends Model{
 
@@ -30,7 +31,7 @@ class Competence extends Model{
     obj = this.checkDefinition(obj);
     if(obj){
       let id = this.generateID(obj);
-      //return this.put('competences/'+(id), obj).then(this.log);
+      return this.put('competences/'+(id), obj).then(this.log);
       console.log(this.lastRequest);
       return this.getItem(key, {})
         .then((comps) => {comps[id] = obj; return comps;})
@@ -51,8 +52,27 @@ class Competence extends Model{
   }
 
   getCompetences(){
-    //return this.isLoggedIn().then((d) => this.get('competences/', {userId:d.username, courseId:'randomString'}));
     return this.getItem('competences', {}).then(this.mapToNumericalKeys);
+    
+    var learningTemplate = new LearningTemplate();
+    var _this = this;
+    return learningTemplate.getLearningTemplates()
+    .then((templates) => {
+      var q = new Promise(function(resolve, reject){
+        var result = {};
+        var counter = 0;
+        for(var i in templates){
+          _this.get('competences/', {courseId:'randomString', learningTemplate: templates[i]}).then((d) => {
+            counter++;
+            result[templates[i]] = d;
+            if(counter == templates.length){
+              resolve(result);
+            }
+          }, () => reject());
+        }
+      });
+      return q;
+    });
   }
 
   addLearningTemplate(){
