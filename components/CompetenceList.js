@@ -14,7 +14,7 @@ import {
 import CompetenceView from 'reflect/components/CompetenceView';
 import CourseView from 'reflect/components/CourseView';
 import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence} from 'reflect/imports';
+import {Router, styles, Competence, CompetenceCreate} from 'reflect/imports';
 
 
 class CompetenceList extends Component{
@@ -169,6 +169,34 @@ class CompetenceList extends Component{
         style={styles.list.li} />
   }
 
+  testRoute(){
+    //alert(1);
+    var navigator = this.props.navigator;
+    setTimeout(() => {
+      //navigator.push()
+      Router.route({
+        title:'test',
+        id:'goals',
+        component:CompetenceCreate,
+      }, navigator);
+    }, 1000);
+  }
+
+  _renderTestButton(){
+    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.testRoute()} style={{position:'absolute', top:200}}>
+      <View>
+        <View style={styles.list.rowContainer}>
+          <View style={styles.list.textContainer}>
+            <Text>
+              TestButton
+            </Text>
+          </View>
+        </View>
+        <View style={styles.list.separator} />
+      </View>
+    </TouchableHighlight>
+  }
+
   render(){
     return <View style={styles.wrapper}>
       <ListView
@@ -178,6 +206,7 @@ class CompetenceList extends Component{
         renderRow={this.renderRow}
         renderSectionHeader={this.renderSectionHeader}>
       </ListView>
+
     </View>
   }
 }

@@ -191,7 +191,6 @@ class CompetenceView extends Component{
           {this._renderTabs()}
         </View>
         {this._renderTabContent()}
-
     </ScrollView>
   }
 }

@@ -43,7 +43,7 @@ constructor(){
     _this.loggedIn = isIn;
     this.setState({loggedIn: isIn});
   });
-  this.test();
+  //this.test();
 }
 
 test(){
@@ -72,7 +72,7 @@ renderScene(route, navigator){
 }
 
   route(route, navigator){
-    return Router.route(route, navigator);
+    Router.route(route, navigator);
   }
 
   componentWillMount() {

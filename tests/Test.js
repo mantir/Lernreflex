@@ -141,11 +141,11 @@ class Test extends Component{
   }
 
   rowPressed(rowData) {
-    this[rowData.name]();/*.then((d) => {
+    this[rowData.name]().then((d) => {
       d[0] = JSON.stringify(d[0]);
       alert(d[0]+' '+rowData.name+' abgeschlossen.');
       this.setState({lastRequest:JSON.stringify(d[1])})
-    });*/
+    });
   }
 
   renderRow(rowData){

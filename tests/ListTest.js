@@ -178,6 +178,23 @@ class ListTest extends Component{
         renderRow={this.renderRow}
         renderSectionHeader={this.renderSectionHeader}>
       </ListView>
+      <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => Router.route({
+        title: 'Gruppe',
+        id: 'group',
+        component: CourseView,
+        passProps: {data: {competence:'d'}}
+      }, this.props.navigator)} style={styles.list.li}>
+        <View>
+          <View style={styles.list.rowContainer}>
+            <View style={styles.list.textContainer}>
+              <Text>
+                TestButton
+              </Text>
+            </View>
+          </View>
+          <View style={styles.list.separator} />
+        </View>
+      </TouchableHighlight>
     </View>
   }
 }
