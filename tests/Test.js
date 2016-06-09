@@ -15,6 +15,7 @@ import CompetenceView from 'reflect/components/CompetenceView';
 import CourseView from 'reflect/components/CourseView';
 import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
 import {Router, styles, Competence, User, Course, LearningTemplate} from 'reflect/imports';
+import UITest from 'reflect/tests/UITest'
 
 
 class Test extends Component{
@@ -32,6 +33,7 @@ class Test extends Component{
       {id:2, name:'testCreateCompetence'},
       {id:3, name:'testCreateCourse'},
       {id:4, name:'testGetCompetences'},
+      {id:5, name:'uiTest'},
     ];
     this.state = {
       dataSource: ds.cloneWithRows(this.tests),
@@ -87,8 +89,7 @@ class Test extends Component{
     var user = this.user;
     var competence = this.competence;
     var learningTemplate = this.learningTemplate;
-    return learningTemplate.getLearningTemplates()
-      .then((d) => competence.getCompetences())
+    return competence.getCompetences()
       .then((d) => [d, competence.lastRequest]);
   }
 
@@ -116,6 +117,16 @@ class Test extends Component{
       .then((d) => [d, user.lastRequest]);
   }
 
+  uiTest(){
+    this.render = function() {
+      return <UITest />
+    }
+    this.setState({tdfsdfsd:1});
+    return new Promise((resolve, reject) => {
+      resolve(['Render UI', {}]);
+    });
+  }
+
   componentDidMount(){
     this.componentDidUpdate();
   }
@@ -130,11 +141,11 @@ class Test extends Component{
   }
 
   rowPressed(rowData) {
-    this[rowData.name]().then((d) => {
+    this[rowData.name]();/*.then((d) => {
       d[0] = JSON.stringify(d[0]);
       alert(d[0]+' '+rowData.name+' abgeschlossen.');
       this.setState({lastRequest:JSON.stringify(d[1])})
-    });
+    });*/
   }
 
   renderRow(rowData){
