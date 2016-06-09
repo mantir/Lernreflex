@@ -12,5 +12,8 @@ echo "module.exports = {ip:ip};" >> localip.js
 #Change IP in iOS project
 url="//.*:8081/index.ios.bundle"
 sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/reflect/AppDelegate.m
+#Change IP in iOS debugger
+url="//.*:%zd/debugger-proxy?role=client"
+sed -i -- "s|$url|//$ip:%zd/debugger-proxy?role=client|g" node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.m 
 #Change IP in COMPBASE
 sed -i -- "s/RESTURLCompetence.*/RESTURLCompetence = \"http:\/\/$ip:8084\";/g" /Users/ast/Projects/COMPBASE/util/src/main/java/config/MagicStrings.java
