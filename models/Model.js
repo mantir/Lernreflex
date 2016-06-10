@@ -81,10 +81,10 @@ class Model{
     var request = this.lastRequest = {url: url, req: req};
     var caching = req.method.toUpperCase() === 'GET' && !nocache;
     var callback = (response) => {
-      var contentType = response.headers.get('content-type');
+      var contentType = response.headers ? response.headers.get('content-type') : '';
       //alert(contentType);
       var processResponse = (d) => {
-        if(d.indexOf('Request failed') > -1)
+        if(typeof(d) === 'string' && d.indexOf('Request failed') > -1)
           throw 'Grizzly request failed.';
         if(caching){ //
           return this.setItem(request.url, d, true).then(() => d);
@@ -94,15 +94,18 @@ class Model{
       if(contentType && contentType.indexOf('application/json') !== -1) {
         return response.text().then((d) => {
           try {
-             return processResponse(JSON.parse(d));
+            console.log('parsed JSON');
+            return processResponse(JSON.parse(d));
           } catch (e) {
-             return processResponse(d);
+            console.log('parsed Error' + d);
+            return processResponse(d);
           }
         });
       } else {
         return response.text().then(processResponse);
       }
     }
+    caching = false;
     if(caching){
       return this.getItem(request.url, false, false, true)
       .then((d) => d && Date.now() - d < delay ? this.getItem(request.url, {}) : fetch(url, request))
@@ -145,7 +148,7 @@ class Model{
   setItem(key, value, time){
     return AsyncStorage.setItem(this.getName(key), JSON.stringify(value)).then((d) => {
       if(time)
-        return AsyncStorage.setItem(this.getName(key)+'_time', Date.now());
+        return AsyncStorage.setItem(this.getName(key)+'_time', Date.now().toString());
       return d;
     })
   }

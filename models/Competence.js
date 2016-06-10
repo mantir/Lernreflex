@@ -31,11 +31,11 @@ class Competence extends Model{
     obj = this.checkDefinition(obj);
     if(obj){
       let id = this.generateID(obj);
-      return this.put('competences/'+(id), obj).then(this.log);
       console.log(this.lastRequest);
-      return this.getItem(key, {})
+      this.getItem(key, {})
         .then((comps) => {comps[id] = obj; return comps;})
         .then((comps) => super.save(key, comps));
+      return this.put('competences/'+(id), obj).then(this.log);
     }
   }
 
@@ -48,12 +48,12 @@ class Competence extends Model{
   }
 
   getGoals(){
-    return this.getItem('goals', {}).then(this.mapToNumericalKeys);
+    return this.getCompetences();
+    //return this.getItem('goals', {}).then(this.mapToNumericalKeys);
   }
 
   getCompetences(){
-    return this.getItem('competences', {}).then(this.mapToNumericalKeys);
-    
+    //return this.getItem('competences', {}).then(this.mapToNumericalKeys);
     var learningTemplate = new LearningTemplate();
     var _this = this;
     return learningTemplate.getLearningTemplates()
@@ -61,10 +61,15 @@ class Competence extends Model{
       var q = new Promise(function(resolve, reject){
         var result = {};
         var counter = 0;
+        templates = templates.data;
         for(var i in templates){
-          _this.get('competences/', {courseId:'randomString', learningTemplate: templates[i]}).then((d) => {
+          _this.get('competences/', {courseId:'university', learningTemplate: templates[i]}).then((d) => {
             counter++;
-            result[templates[i]] = d;
+            console.log(d, _this.lastRequest);
+            d = d.filter((e) => e !== 'Kompetenz') //Rootkompetenz nicht holen
+            if(d.length){
+              result[templates[i]] = d;
+            }
             if(counter == templates.length){
               resolve(result);
             }

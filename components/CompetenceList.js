@@ -38,7 +38,11 @@ class CompetenceList extends Component{
 
   componentDidMount(){
     this.unmounting = false;
-    this.componentDidUpdate();
+    this.loadData();
+  }
+
+  componentWillReceiveProps(){
+
   }
 
   componentWillUnmount(){
@@ -63,26 +67,27 @@ class CompetenceList extends Component{
     var rowIDs = [];
     var dataBlob = {};
     //if(!this.once) alert(JSON.stringify(comps));
-    comps.map((c) => {
-      if(!dataBlob[c.learningProjectName]){
-        rowIDs.push([]);
-        sectionIDs.push(c.learningProjectName);
-        dataBlob[c.learningProjectName] = {title:c.learningProjectName, index:rowIDs.length - 1, type:'course'};
+    Object.keys(comps).map((k) => {
+      if(!dataBlob[k]){
+        sectionIDs.push(k);
+        dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
+        rowIDs[dataBlob[k].index] = comps[k];
       }
-      rowIDs[dataBlob[c.learningProjectName].index].push(c.forCompetence);
-      dataBlob[c.learningProjectName + ':' + c.forCompetence] = {
-        competence:c.forCompetence,
-        percent:10,
-        type:'competence',
-        isGoal:this.props.type == 'goals'
-      }
+      comps[k].map((comp) => {
+        dataBlob[k + ':' + comp] = {
+          competence:comp,
+          percent:10,
+          type:'competence',
+          isGoal:this.props.type == 'goals'
+        }
+      });
     });
     this.once = true;
-    //console.log(dataBlob, sectionIDs, rowIDs);
+    console.log(dataBlob, sectionIDs, rowIDs);
     return {dataBlob, sectionIDs, rowIDs};
   }
 
-  componentDidUpdate(){
+  loadData(){
     var _this = this;
     var competence = new Competence();
     //alert(this.props.type);
@@ -91,7 +96,8 @@ class CompetenceList extends Component{
     var type = this.props.type;
     if(type === 'goals') {
       competence.getGoals().done((goals) => {
-        if(goals.length){
+        //console.log(goals);
+        if(Object.keys(goals).length){
           let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(goals);
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
@@ -101,7 +107,8 @@ class CompetenceList extends Component{
       });
     } else {
       competence.getCompetences().done((competences) => {
-        if(competences.length){
+        console.log(competences);
+        if(Object.keys(competences).length){
           let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(competences);
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
@@ -169,7 +176,20 @@ class CompetenceList extends Component{
         style={styles.list.li} />
   }
 
-  testRoute(){
+  render(){
+    return <View style={styles.wrapper}>
+      <ListView
+        style={styles._.list}
+        dataSource={this.state.dataSource}
+        enableEmptySections={true}
+        renderRow={this.renderRow}
+        renderSectionHeader={this.renderSectionHeader}>
+      </ListView>
+
+    </View>
+  }
+
+/*  testRoute(){
     //alert(1);
     var navigator = this.props.navigator;
     setTimeout(() => {
@@ -195,20 +215,7 @@ class CompetenceList extends Component{
         <View style={styles.list.separator} />
       </View>
     </TouchableHighlight>
-  }
-
-  render(){
-    return <View style={styles.wrapper}>
-      <ListView
-        style={styles._.list}
-        dataSource={this.state.dataSource}
-        enableEmptySections={true}
-        renderRow={this.renderRow}
-        renderSectionHeader={this.renderSectionHeader}>
-      </ListView>
-
-    </View>
-  }
+  }*/
 }
 
 module.exports = CompetenceList;
