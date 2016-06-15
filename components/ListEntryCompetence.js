@@ -35,7 +35,12 @@ class ListEntryCompetence extends Component{
   _comment(rowData){
     return <View>
       <View style={styles.list.rowContainer}>
-        <View style={styles.list.textContainer}>
+        <View style={[styles.list.textContainer,{flex:0.2}]}>
+          <Text style={styles.list.text}>
+            {rowData.user}
+          </Text>
+        </View>
+        <View style={[styles.list.textContainer, {flex:0.8}]}>
           <Text style={styles.list.text}>
             {rowData.comment}
           </Text>
@@ -69,7 +74,7 @@ class ListEntryCompetence extends Component{
             {rowData.title}
           </Text>
           <Text style={styles.list.right}>
-            {rowData.percent}%
+            
           </Text>
         </View>
       </View>
