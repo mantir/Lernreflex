@@ -14,14 +14,16 @@ import {
 import CompetenceView from 'reflect/components/CompetenceView';
 import CourseView from 'reflect/components/CourseView';
 import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence, CompetenceCreate} from 'reflect/imports';
+import {Router, styles, Competence, CompetenceCreate, Loader} from 'reflect/imports';
 
 
 class CompetenceList extends Component{
 
+
   constructor(){
     super();
     this.unmounting = true;
+    this.Competence = new Competence();
     var ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2,
       sectionHeaderHasChanged : (s1, s2) => s1 !== s2,
@@ -29,15 +31,32 @@ class CompetenceList extends Component{
       getRowData: this.getRowData,
     });
     this.state = {
-      dataSource: ds,
-      loaded: false
+      dataSource: ds.cloneWithRows([{id:'loading'}]), //Set one element for loading
+      loading: true,
     };
     this.renderRow = this.renderRow.bind(this);
     this.renderSectionHeader = this.renderSectionHeader.bind(this);
+    this.loadData = this.loadData.bind(this);
+    this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
+    this.setState = this.setState.bind(this);
+  }
+
+  emptyList(state){
+    if(!state)
+      state = {};
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows([]),
+      loading: false,
+      ...state
+    });
   }
 
   componentDidMount(){
     this.unmounting = false;
+    this.loadData();
+  }
+
+  afterCompetenceCreate(){
     this.loadData();
   }
 
@@ -58,7 +77,7 @@ class CompetenceList extends Component{
   /*
   * Converts the returned data into displayable data
   */
-  competencesToView(comps){
+  competencesToView(comps, notAsTree){
     var viewCompetence = {
       competence:'',
       percent: ''
@@ -66,57 +85,69 @@ class CompetenceList extends Component{
     var sectionIDs = [];
     var rowIDs = [];
     var dataBlob = {};
+
+    var _this = this;
     //if(!this.once) alert(JSON.stringify(comps));
-    Object.keys(comps).map((k) => {
-      if(!dataBlob[k]){
-        sectionIDs.push(k);
-        dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
-        rowIDs[dataBlob[k].index] = comps[k];
-      }
-      comps[k].map((comp) => {
-        dataBlob[k + ':' + comp] = {
-          competence:comp,
-          percent:10,
-          type:'competence',
-          isGoal:this.props.type == 'goals'
+    if(!notAsTree) { //Results came as tree, use always this
+      Object.keys(comps).map((k) => {
+        if(!dataBlob[k]){
+          sectionIDs.push(k);
+          dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
+          console.log(comps[k]);
+          rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
         }
+        comps[k].map((comp) => {
+          dataBlob[k + ':' + comp.name] = _this.Competence.toView(comp, _this.props.type);
+        });
       });
-    });
+    } /*else { //Not as Tree
+      Object.keys(comps).map((k) => {
+        if(!dataBlob[k]){
+          sectionIDs.push(k);
+          dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
+          rowIDs[dataBlob[k].index] = comps[k];
+        }
+        comps[k].map((comp) => {
+          dataBlob[k + ':' + comp] = {
+            competence:comp,
+            percent:10,
+            type:'competence',
+            isGoal:this.props.type == 'goals'
+          }
+        });
+      });
+    }*/
     this.once = true;
     console.log(dataBlob, sectionIDs, rowIDs);
     return {dataBlob, sectionIDs, rowIDs};
   }
 
   loadData(){
-    var _this = this;
-    var competence = new Competence();
+    var competence = this.Competence;
     //alert(this.props.type);
     //competence.getAllKeys().done((keys) => console.log(keys));
     //competence.removeLocal('goals');
+    this.emptyList({loading:true});
+    var _this = this;
     var type = this.props.type;
+    var fun;
     if(type === 'goals') {
-      competence.getGoals().done((goals) => {
-        //console.log(goals);
-        if(Object.keys(goals).length){
-          let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(goals);
-          _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
-            loaded: true
-          });
-        }
-      });
+      fun = competence.getGoals;
     } else {
-      competence.getCompetences().done((competences) => {
-        console.log(competences);
-        if(Object.keys(competences).length){
-          let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(competences);
-          _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
-            loaded: true
-          });
-        }
-      });
+      fun = competence.getCompetences;
     }
+    fun().done((competences) => {
+      //console.log(competences);
+      if(Object.keys(competences).length){
+        let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(competences);
+        _this.setState({
+          dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
+         loading:false
+        });
+      } else {
+        _this.emptyList();
+      }
+    }, () => _this.emptyList());
   }
 
   rowPressed(rowData) {
@@ -126,14 +157,14 @@ class CompetenceList extends Component{
         title: 'Lernziel',
         id: this.props.type == 'goals' ? 'goal' : 'competence',
         component: CompetenceView,
-        passProps: {data: rowData}
+        passProps: rowData
       }, this.props.navigator);
     } else if(rowData.type == 'course'){
       Router.route({
         title: 'Gruppe',
         id: 'group',
         component: CourseView,
-        passProps: {data: rowData}
+        passProps: rowData
       }, this.props.navigator);
     }
     return true;
@@ -158,7 +189,7 @@ class CompetenceList extends Component{
               {rowData.title}
             </Text>
             <Text style={styles.list.right}>
-              {rowData.percent}%
+              {rowData.percent}
             </Text>
           </View>
         </View>
@@ -168,6 +199,9 @@ class CompetenceList extends Component{
   }
 
   renderRow(rowData){
+    if(this.state.loading) {
+      return <Loader color={styles._.primary} />
+    }
       return <ListEntryCompetence
         type='competence'
         underlayColor={styles.list.liHover}
@@ -177,15 +211,14 @@ class CompetenceList extends Component{
   }
 
   render(){
-    return <View style={styles.wrapper}>
+    return <View style={[styles.wrapper, styles._.list]}>
       <ListView
-        style={styles._.list}
+        style={[styles._.list]}
         dataSource={this.state.dataSource}
         enableEmptySections={true}
         renderRow={this.renderRow}
         renderSectionHeader={this.renderSectionHeader}>
       </ListView>
-
     </View>
   }
 
