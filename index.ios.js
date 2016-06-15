@@ -43,16 +43,17 @@ constructor(){
     _this.loggedIn = isIn;
     this.setState({loggedIn: isIn});
   });
+  this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
   //this.test();
 }
 
 test(){
-/*  this.render = () => {
-    return <Test />;
-  };*/
   this.render = () => {
-    return <UITest />;
+    return <Test />;
   };
+/*  this.render = () => {
+    return <UITest />;
+  };*/
 }
 
 onLogin(){
@@ -115,6 +116,13 @@ renderScene(route, navigator){
     );
   }
 
+  afterCompetenceCreate(d){
+    if(this.refs.navGoal)
+      this.refs.navGoal.refs.goals.afterCompetenceCreate();
+    if(this.refs.navComp)
+      this.refs.navComp.refs.competences.afterCompetenceCreate();
+  }
+
 
   render() {
     StatusBar.setBarStyle('light-content', true);
@@ -151,8 +159,15 @@ renderScene(route, navigator){
             component: CompetenceList,
             rightButtonTitle: 'Hinzufügen',
             rightButtonIcon: this.state.addIcon,
-            onRightButtonPress: () => this.route({id:'goal.add', component: CompetenceCreate}, this.refs.navGoal.navigator),
+            onRightButtonPress: () => this.route({
+              id:'goal.add',
+              component: CompetenceCreate,
+              passProps: {
+                afterCreation: this.afterCompetenceCreate
+              }
+            }, this.refs.navGoal.navigator),
             passProps: {
+              ref: 'goals',
               type:'goals'
             }
           }, 'navGoal')}
@@ -201,8 +216,15 @@ renderScene(route, navigator){
             component: CompetenceList,
             rightButtonTitle: 'Hinzufügen',
             rightButtonIcon: this.state.addIcon,
-            onRightButtonPress: () => this.route({id:'competence.add', component: CompetenceCreate}, this.refs.navComp.navigator),
+            onRightButtonPress: () => this.route({
+              id:'competence.add',
+              component: CompetenceCreate,
+              passProps: {
+                afterCreation: this.afterCompetenceCreate
+              }
+            }, this.refs.navComp.navigator),
             passProps: {
+              ref: 'competences',
               type: 'competences'
             }
           }, 'navComp')}
