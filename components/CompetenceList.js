@@ -132,9 +132,9 @@ class CompetenceList extends Component{
     var type = this.props.type;
     var fun;
     if(type === 'goals') {
-      fun = competence.getGoals;
+      fun = competence.getGoals.bind(competence);
     } else {
-      fun = competence.getCompetences;
+      fun = competence.getCompetences.bind(competence);
     }
     fun().done((competences) => {
       //console.log(competences);
