@@ -28,13 +28,12 @@ class Course extends Model{
     return obj.courseId;
   }
 
-  getCourses(params){
+  getCourses(){
     return this.isLoggedIn().then((d) => {
       let l = {
-        userId: d.username,
-        groupId: 'randomString',
+        password: d.password,
       };
-      return this.get('courses/', params);
+      return this.get('users/'+d.username+'/courses/', l);
     });
     //this.getItem('courses', params).then(this.mapToNumericalKeys);
   }
