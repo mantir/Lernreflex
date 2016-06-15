@@ -35,6 +35,7 @@ class CompetenceCreate extends Component{
     var competence = new Competence();
     var user = new User();
     var learningTemplate = new LearningTemplate();
+    var superCompetences = this.props.superCompetence ? [this.props.superCompetence] : [];
     //console.log(this.state.title);
     this.setState({loading:true});
     var _this = this;
@@ -49,10 +50,16 @@ class CompetenceCreate extends Component{
           catchwords: this.state.catchwords,
           isGoal: this.props.type === 'goals',
           subCompetences: [],
-          superCompetences: [],
+          superCompetences: superCompetences,
           learningProjectName: this.state.group
       }))
-      .done(() => this.props.navigator.pop(), (error) => {
+      .done(() => {
+        this.props.navigator.pop();
+        //console.log(this.props.afterCreation);
+        if(this.props.afterCreation) {
+          this.props.afterCreation(this.state.title);
+        }
+      }, (error) => {
           //Errorhandler
           Alert.alert('Erstellen fehlgeschlagen', 'Hier steht bald der Fehler.', [
             {text: 'Ok'},
@@ -127,6 +134,13 @@ class CompetenceCreate extends Component{
     }
   }
 
+  _renderSuperCompetence(){
+    if(!this.props.superCompetence)
+      return null;
+    return <Text style={styles.comp.superTitle}>{'Als Teil von: ' + this.props.superCompetence}</Text>
+  }
+
+
   render(){
     var type = this.props.type;
     const {group} = this.state;
@@ -134,6 +148,7 @@ class CompetenceCreate extends Component{
     const comp = (s, s2) => s.toLowerCase().trim() === s2.toLowerCase().trim();
     return <View style={styles.wrapper}>
         <InputScrollView keyboardDismissMode="interactive" ref="scrollView">
+        {this._renderSuperCompetence()}
         <TextInput
           ref="title"
           onChangeText={(title) => this.setState({title})}
