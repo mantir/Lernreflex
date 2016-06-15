@@ -58,25 +58,94 @@ class Competence extends Model{
     var _this = this;
     return learningTemplate.getLearningTemplates()
     .then((templates) => {
+      //console.log(templates);
       var q = new Promise(function(resolve, reject){
-        var result = {};
+        var result = {}, orderedResult = {};
         var counter = 0;
         templates = templates.data;
-        for(var i in templates){
-          _this.get('competences/', {courseId:'university', learningTemplate: templates[i]}).then((d) => {
+        if(!templates){
+          resolve([]);
+        }
+        templates.map((template) => {
+          var already = {};
+          _this.get('competences/', {courseId:'university', asTree:true, learningTemplate: template}).then((d) => {
             counter++;
             console.log(d, _this.lastRequest);
-            d = d.filter((e) => e !== 'Kompetenz') //Rootkompetenz nicht holen
-            if(d.length){
-              result[templates[i]] = d;
+            d = _this.parseFromTree(d);
+            if(d.length) {
+              result[template] = d;
             }
+            console.log(result);
             if(counter == templates.length){
-              resolve(result);
+              templates.filter((t) => orderedResult[t] = result[t])
+              resolve(orderedResult);
             }
           }, () => reject());
         }
-      });
+      )});
       return q;
+    });
+  }
+
+  /*
+  * Sucht Kompetenzen aus Daten und überprüft
+  * ob und wie die Über- oder Unterkompetenzrelation zu anderen Kompetenzen ist
+  * @param result: array of arrays
+  * @param key: index für momentan zu füllendes array in result
+  * @param d: daten, die geparst werden sollen
+  */
+  parseFromTree(d){
+    var _this = this;
+    if(!d.length)
+      return d;
+    d = d[0].competence;
+    var subs = {};
+    for(var i in d) {
+      subs = {...subs, ...this.treeSubCompetences(d[i].competence, {})};
+    }
+
+    d = d.filter((e) => {
+      return !subs[e.name];
+    });
+    return d;
+  }
+  /*
+  * Get an array of all subCompetences as keys
+  */
+  treeSubCompetences(d, subs){
+    var _this = this;
+    d.map((e) => {
+      subs[e.name] = true;
+      if(e.competence.length){
+        subs = _this.treeSubCompetences(e.competence, subs);
+      }
+    });
+    return subs;
+  }
+
+  /*
+  * Returns a mapping from a data competence object to display in the view
+  */
+  toView(comp, type){
+    var f = (comp, type) => {
+      return {
+        competence:comp.name,
+        //subCompetences: comp.competence,
+        percent:10,
+        type:'competence',
+        isGoal:type == 'goals'
+      }
+    }
+    if(Array.isArray(comp)){
+      return comp.map((c) => f(c, type));
+    }
+    return f(comp, type);
+  }
+
+  getSubCompetences(rootCompetence){
+    var _this = this;
+    return this.get('competences/', {rootCompetence: rootCompetence, courseId:'university', asTree: true}).then((d) => {
+      return _this.parseFromTree(d);
     });
   }
 
