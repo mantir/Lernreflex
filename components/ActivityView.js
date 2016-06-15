@@ -25,14 +25,11 @@ class ActivityView extends Component{
       currentTab: 'comments',
       comment:'',
       comments: ds.cloneWithRows([
-        {id:1, percent:75, type:'comment', comment:'Comment 1'},
-        {id:2, percent:15, type:'comment', comment:'Comment 2'},
-        {id:3, percent:20, type:'comment', comment:'Comment 3'},
-        {id:4, percent:20, type:'comment', comment:'Comment 4'},
-        {id:5, percent:20, type:'comment', comment:'Comment 5'},
-        {id:5, percent:20, type:'comment', comment:'Comment 5'},
-        {id:5, percent:20, type:'comment', comment:'Comment 5'},
-        {id:5, percent:20, type:'comment', comment:'Comment 5'},
+        {id:2, percent:15, type:'comment', user:'Klaus R.', comment:'Deine Lösung war sehr elegant. Der Gradient Descent könnte allerdings noch etwas schneller ablaufen, wenn die du Step Size größer machst.'},
+        //{id:1, percent:75, type:'comment', user:'Martin K.', comment:''},
+/*        {id:3, percent:20, type:'comment', user:'Martin K.', comment:'Comment 3'},
+        {id:4, percent:20, type:'comment', user:'Martin K.', comment:'Comment 4'},
+        {id:5, percent:20, type:'comment', user:'Martin K.', comment:'Comment 5'},*/
       ]),
       users: ds.cloneWithRows([
         {id:1, percent:75, type:'user', name:'User 1'},
@@ -147,6 +144,12 @@ class ActivityView extends Component{
   addComment(){
     var comment = this.state.comment;
     var competence = new Competence();
+    this.setState({comments: this.state.comments.cloneWithRows([
+      {id:2, type:'comment', user:'Klaus R.', comment:'Deine Lösung war sehr elegant. Der Gradient Descent könnte allerdings noch etwas schneller ablaufen, wenn die du Step Size größer machst.'},
+      {id:1, type:'comment', user:'Martin K.', comment:this.state.comment},
+    ]),
+      comment:''
+    });
   }
 
   _scrollToBottom(refName) {
@@ -163,8 +166,7 @@ class ActivityView extends Component{
 
 
   render(){
-    var activity = this.props.data;
-    var subCompName = activity.isGoal ? 'Teilziele' : 'Teilkompetenzen';
+    var activity = this.props;
     //<View style={styles.viewWrapper}>
     return <InputScrollView style={[styles.wrapper, {overflow:'hidden'}]} ref="scroller">
       <Text style={[styles.comp.title]}>{activity.title}</Text>
