@@ -19,12 +19,15 @@ var Router = {
         route.title = 'Lernziele';
       break;
       case 'competences':
+        route.passProps = {...route.passProps, type:'competences'};
         route.title = 'Kompetenzen';
       break;
       case 'goal':
+        route.passProps = {...route.passProps, type:'goals'};
         route.title = 'Lernziel';
       break;
       case 'competence':
+        route.passProps = {...route.passProps, type:'competences'};
         route.title = 'Kompetenz';
       break;
       case 'goal.add':
