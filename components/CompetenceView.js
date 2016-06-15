@@ -18,30 +18,25 @@ class CompetenceView extends Component{
 
   constructor(){
     super();
-    this.competence = new Competence();
+    this.Competence = new Competence();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       currentAssessment:'progress',
-      //currentTab: 'subcompetences',
-      currentTab: 'activities',
+      currentTab: 'subcompetences',
+      //currentTab: 'activities',
       assessment:{
         progress:5,
         time:5,
         interest:2
       },
       subcompetences: ds.cloneWithRows([
-        {id:1, percent:75, type:'competence', competence:'Competence 1'},
-        {id:2, percent:15, type:'competence', competence:'Competence 2'},
-        {id:3, percent:20, type:'competence', competence:'Competence 3'},
-        {id:4, percent:20, type:'competence', competence:'Competence 4'},
-        {id:5, percent:20, type:'competence', competence:'Competence 5'},
       ]),
       activities: ds.cloneWithRows([
-        {id:1, percent:75, type:'activity', title:'Activity 1'},
-        {id:2, percent:15, type:'activity', title:'Activity 2'},
+        {id:1, percent:75, type:'activity', title:'Backpropagation in Python implementieren mit dem SciKit'},
+        /*{id:2, percent:15, type:'activity', title:'Activity 2'},
         {id:3, percent:20, type:'activity', title:'Activity 3'},
         {id:4, percent:20, type:'activity', title:'Activity 4'},
-        {id:5, percent:20, type:'activity', title:'Activity 5'},
+        {id:5, percent:20, type:'activity', title:'Activity 5'},*/
       ]),
       users: ds.cloneWithRows([
         {id:1, percent:75, type:'user', name:'User 1'},
@@ -55,20 +50,36 @@ class CompetenceView extends Component{
     this.render = this.render.bind(this);
   }
 
+  componentDidMount(){
+    this.loadData();
+  }
+
+  loadData(){
+    var _this = this;
+    this.Competence.getSubCompetences(this.props.competence)
+      .then((d) => {
+        d = _this.Competence.toView(d, _this.props.type);
+        _this.setState({
+          subcompetences: _this.state.subcompetences.cloneWithRows(d),
+          loaded: true
+        });
+      });
+  }
+
   rowPressed(rowData) {
     if(rowData.type == 'competence'){
       Router.route({
         title: 'Lernziel',
-        id: 'goal',
+        id: this.props.type == 'goals' ? 'goal' : 'competence',
         component: CompetenceView,
-        passProps: {data: rowData}
+        passProps: rowData
       }, this.props.navigator);
     } else if(rowData.type == 'activity'){
       Router.route({
         title: 'Aktivität',
         id: 'activity',
         component: ActivityView,
-        passProps: {data: rowData}
+        passProps: rowData
       }, this.props.navigator);
     }
   }
@@ -90,7 +101,7 @@ class CompetenceView extends Component{
     ];
     return btns.map(function(btn){
       var style = [styles._.button];
-      var scale = this.competence.scales[btn.key];
+      var scale = this.Competence.scales[btn.key];
       if(btn.key === this.state.currentAssessment)
         style.push(styles._.buttonActive);
       return <View key={btn.key} style={styles._.col}>
@@ -106,8 +117,8 @@ class CompetenceView extends Component{
 
   subCompName(singular){
     if(singular)
-      return this.props.data.isGoal ? 'Teilziel' : 'Teilkompetenz';
-    return this.props.data.isGoal ? 'Teilziele' : 'Teilkompetenzen';
+      return this.props.isGoal ? 'Teilziel' : 'Teilkompetenz';
+    return this.props.isGoal ? 'Teilziele' : 'Teilkompetenzen';
   }
 
   _renderTabs(){
@@ -138,10 +149,12 @@ class CompetenceView extends Component{
     var content = this.state[this.state.currentTab];
     var button = null;
     var route = {
-      id: this.state.currentTab == 'subcompetences' ? (this.props.data.isGoal ? 'goal.add' : 'competence.add') : 'activity.add',
+      id: this.state.currentTab == 'subcompetences' ? (this.props.isGoal ? 'goal.add' : 'competence.add') : 'activity.add',
       component: this.state.currentTab == 'subcompetences' ? CompetenceCreate : ActivityView,
       passProps:{
-        data:{ superCompetence: this.props.data.competence, type:'goals' }
+        afterCreation: (c) => this.loadData(),
+        superCompetence: this.props.competence,
+        type:this.props.type
       }
     }
     console.log(route);
@@ -158,6 +171,7 @@ class CompetenceView extends Component{
 
     var list = <ListView
       key='list'
+      enableEmptySections={true}
       style={styles._.list}
       dataSource={content}
       renderRow={(rowData) => this.renderRow(rowData)}>
@@ -165,8 +179,9 @@ class CompetenceView extends Component{
   return [list, button];
   }
 
+
   render(){
-    var competence = this.props.data;
+    var competence = this.props;
     var subCompName = competence.isGoal ? 'Teilziele' : 'Teilkompetenzen';
     return <ScrollView style={styles.wrapper}>
       <Text style={styles.comp.title}>{competence.competence}</Text>
@@ -177,7 +192,7 @@ class CompetenceView extends Component{
       </View>
       <Slider
         ref="slider"
-        maximumValue={this.competence.scales[this.state.currentAssessment].values.length - 1}
+        maximumValue={this.Competence.scales[this.state.currentAssessment].values.length - 1}
         minimumValue={0}
         onValueChange={(value) => {
           this.state.assessment[this.state.currentAssessment] = value;
@@ -200,7 +215,7 @@ class CompetenceView extends Component{
     id: this.props.type == 'goals' ? 'goal.add' : 'competence.add',
     component: CompetenceCreate,
     passProps:{
-      superCompetence: this.props.data.competence
+      superCompetence: this.props.competence
     }
   }, this.props.navigator)}
   style={styles.comp.addBtn}>
