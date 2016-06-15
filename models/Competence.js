@@ -1,6 +1,6 @@
 'use strict'
 import Model from 'reflect/models/Model';
-import {LearningTemplate} from 'reflect/imports'
+import {LearningTemplate, Course} from 'reflect/imports'
 
 class Competence extends Model{
 
@@ -55,16 +55,41 @@ class Competence extends Model{
   getCompetences(){
     //return this.getItem('competences', {}).then(this.mapToNumericalKeys);
     var learningTemplate = new LearningTemplate();
+    var course = new Course();
     var _this = this;
-    return learningTemplate.getLearningTemplates()
-    .then((templates) => {
-      //console.log(templates);
-      var q = new Promise(function(resolve, reject){
+    var getFromCourses = (resolve, reject, orderedResult) => {
+      course.getCourses().then((courses) => {
+        console.log(courses);
+        var result = {}
+        if(!courses) {
+          resolve([]);
+        }
+        var counter = 0;
+        courses.map((course) => {
+          counter++;
+          _this.get('competences/', {courseId:course.id, asTree:true}).then((d) => {
+            console.log(d);
+            d = _this.parseFromTree(d);
+            if(d.length) {
+              result[course.name] = d;
+            }
+            if(counter == courses.length){
+              courses.filter((t) => orderedResult[t.name] = d)
+              resolve(orderedResult);
+            }
+          });
+        });
+        resolve(orderedResult);
+      });
+    }
+    var q = new Promise(function(resolve, reject){
+      learningTemplate.getLearningTemplates().then((templates) => {
+        //console.log(templates);
         var result = {}, orderedResult = {};
         var counter = 0;
         templates = templates.data;
-        if(!templates){
-          resolve([]);
+        if(!templates) {
+          getFromCourses(resolve, reject, []);
         }
         templates.map((template) => {
           var already = {};
@@ -78,13 +103,14 @@ class Competence extends Model{
             console.log(result);
             if(counter == templates.length){
               templates.filter((t) => orderedResult[t] = result[t])
-              resolve(orderedResult);
+              getFromCourses(resolve, reject, orderedResult);
             }
           }, () => reject());
         }
       )});
-      return q;
+
     });
+    return q;
   }
 
   /*
