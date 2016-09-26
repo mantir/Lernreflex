@@ -34,7 +34,8 @@ class Test extends Component{
       {id:2, name:'testCreateCompetence'},
       {id:3, name:'testCreateCourse'},
       {id:4, name:'testGetCompetences'},
-      {id:5, name:'uiTest'},
+      {id:5, name:'testGetCourses'},
+      {id:6, name:'uiTest'},
     ];
     this.state = {
       dataSource: ds.cloneWithRows(this.tests),
@@ -110,6 +111,13 @@ class Test extends Component{
     var learningTemplate = this.learningTemplate;
     return competence.getCompetences()
       .then((d) => [d, competence.lastRequest]);
+  }
+
+  testGetCourses(){
+    var user = this.user;
+    var course = this.course;
+    return course.getCourses()
+      .then((d) => [d, course.lastRequest]);
   }
 
   testCreateCourse(){

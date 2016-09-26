@@ -15,6 +15,7 @@ var white = '#FFF';
 var gray = '#333';
 var lightGray = '#EEE';
 var topHeight = 50;
+var iosTop = 64;
 
 var general = StyleSheet.create({
   button: {
@@ -69,11 +70,13 @@ var general = StyleSheet.create({
   },
   list: {
     flex:1,
+    flexDirection:'column',
   },
   wrapper: {
     flex:1,
-    flexDirection:'column'
-    //paddingTop: ios ? 0 : topHeight
+    flexDirection:'column',
+    //paddingTop:topHeight
+    //paddingTop: ios ? iosTop : topHeight
   },
   viewWrapper: {//Does not work...
     flex:1,
