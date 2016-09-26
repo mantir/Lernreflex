@@ -10,13 +10,14 @@ import {
   NavigatorIOS,
   Platform
 } from 'react-native';
-import {styles, Router, User, CompetenceList, Loader} from 'reflect/imports';
+import {styles, Router, User, Admin, CompetenceList, Loader} from 'Lernreflex/imports';
 
 
 class Menu extends Component{
 
   constructor(){
     super();
+    this.user = new User();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.links = [
       {title: 'Empfohlene Lernziele', route:{
@@ -28,17 +29,27 @@ class Menu extends Component{
         }
       }},
       {title: 'Logout', route:{'id': 'user.logout'}},
-    ]
+    ];
+    var _this = this;
+    let user = new User();
     this.state = {
-      links: ds.cloneWithRows(this.links),
+      links: ds.cloneWithRows(_this.links),
     }
     this.renderRow = this.renderRow.bind(this);
+    user.isLoggedIn().then((u) => {
+      if(u.username == Router.adminName) {
+        _this.links.push({title: 'Admin', route:{'id': 'admin', component: Admin}});
+      }
+      _this.setState({
+        links: ds.cloneWithRows(_this.links),
+      });
+    });
+
   }
 
   rowPressed(rowData) {
     if(rowData.route.id === 'user.logout'){
-      let user = new User();
-      user.logout().then(this.props.onLogout);
+      this.user.logout().then(this.props.onLogout);
     } else {
       Router.route(rowData.route, this.props.navigator);
     }

@@ -11,10 +11,10 @@ import {
   NavigatorIOS,
   ToolbarAndroid
 } from 'react-native';
-import CompetenceView from 'reflect/components/CompetenceView';
-import CourseView from 'reflect/components/CourseView';
-import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence} from 'reflect/imports';
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import CourseView from 'Lernreflex/components/CourseView';
+import ListEntryCompetence from 'Lernreflex/components/ListEntryCompetence';
+import {Router, styles, Competence} from 'Lernreflex/imports';
 
 
 class ListTest extends Component{

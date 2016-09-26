@@ -1,5 +1,5 @@
 'use strict'
-import Model from 'reflect/models/Model';
+import Model from 'Lernreflex/models/Model';
 
 class Badge extends Model{
   constructor(){

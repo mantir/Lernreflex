@@ -11,11 +11,11 @@ import {
   NavigatorIOS,
   ToolbarAndroid
 } from 'react-native';
-import CompetenceView from 'reflect/components/CompetenceView';
-import CourseView from 'reflect/components/CourseView';
-import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence, User, Course, LearningTemplate} from 'reflect/imports';
-import UITest from 'reflect/tests/UITest'
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import CourseView from 'Lernreflex/components/CourseView';
+import ListEntryCompetence from 'Lernreflex/components/ListEntryCompetence';
+import {Router, styles, Competence, User, Course, LearningTemplate} from 'Lernreflex/imports';
+import UITest from 'Lernreflex/tests/UITest'
 
 
 class Test extends Component{
@@ -30,6 +30,7 @@ class Test extends Component{
     this.testCompName2 = 'Ich kann fernseh gucken.';
     this.tests = [
       {id:1, name:'testCreateUser'},
+      {id:6, name:'testCreateLearningTemplate'},
       {id:2, name:'testCreateCompetence'},
       {id:3, name:'testCreateCourse'},
       {id:4, name:'testGetCompetences'},
@@ -54,6 +55,24 @@ class Test extends Component{
     this.learningTemplate = new LearningTemplate();
     this.course = new Course();
   }
+  testCreateLearningTemplate(){
+    var user = new User();
+    var _this = this;
+    return user.isLoggedIn().then((d) => {
+      if(!d){
+        return ['not', 'not'];
+      }
+      let templateName = 'RealTest';
+      let learningTemplate = {
+        userName: d.username,
+        groupId: 'randomString',
+        selectedTemplate: templateName
+      };
+      var l = new LearningTemplate();
+      return l.save(learningTemplate)
+      .then((d) => [d, l.lastRequest]);
+    });
+  }
 
   testCreateCompetence(){
     var user = new User();
@@ -62,7 +81,7 @@ class Test extends Component{
       if(!d){
         return ['not', 'not'];
       }
-      let templateName = 'Real Life';
+      let templateName = 'Frankreich';
       let learningTemplate = {
         userName: d.username,
         groupId: 'randomString',

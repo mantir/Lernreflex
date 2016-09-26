@@ -12,7 +12,7 @@ import ReactNative, {
   TextInput,
   Slider
 } from 'react-native';
-import {styles, Router, Competence, Activity, ListEntryCompetence, Icon, InputScrollView} from 'reflect/imports';
+import {styles, Router, Competence, Activity, ListEntryCompetence, Icon, InputScrollView} from 'Lernreflex/imports';
 import Dimensions from 'Dimensions';
 
 class ActivityView extends Component{
@@ -163,11 +163,10 @@ class ActivityView extends Component{
 
 
   render(){
-    var activity = this.props.data;
-    var subCompName = activity.isGoal ? 'Teilziele' : 'Teilkompetenzen';
+    var activity = this.props;
     //<View style={styles.viewWrapper}>
     return <InputScrollView style={[styles.wrapper, {overflow:'hidden'}]} ref="scroller">
-      <Text style={[styles.comp.title]}>{activity.title}</Text>
+      <Text style={[styles.comp.title]}>{activity.name}</Text>
         <View style={styles._.tabContainer}>
           {this._renderTabs()}
         </View>

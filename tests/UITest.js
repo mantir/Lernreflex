@@ -18,11 +18,11 @@ import {
   Image
 } from 'react-native';
 
-import Menu from 'reflect/components/Menu';
-import BadgeList from 'reflect/components/BadgeList';
-import UserLogin from 'reflect/components/UserLogin';
-import ListTest from 'reflect/tests/ListTest';
-import {styles, Router, CompetenceList, CompetenceCreate, User, Test, Icon} from 'reflect/imports';
+import Menu from 'Lernreflex/components/Menu';
+import BadgeList from 'Lernreflex/components/BadgeList';
+import UserLogin from 'Lernreflex/components/UserLogin';
+import ListTest from 'Lernreflex/tests/ListTest';
+import {styles, Router, CompetenceList, CompetenceCreate, User, Test, Icon} from 'Lernreflex/imports';
 
 
 class UITest extends Component {

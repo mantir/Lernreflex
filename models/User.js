@@ -1,5 +1,5 @@
 'use strict'
-import Model from 'reflect/models/Model';
+import Model from 'Lernreflex/models/Model';
 
 class User extends Model{
   constructor(){
@@ -28,6 +28,7 @@ class User extends Model{
   }
 
   tryLogin(user, password){
+    //return new Promise((resolve, reject) => resolve("true"));
     return this.get('users/'+user+'/exists', {password:password, nocache:true});
   }
 
@@ -48,6 +49,21 @@ class User extends Model{
 
   logout() {
     return this.setItem('auth', false);
+  }
+
+  getUsers(){
+    let _this = this;
+    return this.isLoggedIn().then((u) => _this.get('users', {userName:u.username, password:u.password})).then((d) => {
+      return d.map((user) => {
+        let u = {};
+        u.username = user.userId;
+        u.name = user.printableName ? user.printableName : u.username;
+        u.role = user.role;
+        u.courseContext = user.courseContext;
+        u.fromSystem = user.lmsSystems;
+        return u;
+      });
+    });
   }
 }
 

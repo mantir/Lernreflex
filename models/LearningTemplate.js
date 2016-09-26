@@ -1,5 +1,5 @@
 'use strict'
-import Model from 'reflect/models/Model';
+import Model from 'Lernreflex/models/Model';
 
 class LearningTemplate extends Model{
   constructor(){
@@ -34,7 +34,7 @@ class LearningTemplate extends Model{
         userId: d.username,
         groupId: 'randomString',
       };
-      return this.get('learningtemplates/', params);
+      return this.get('learningtemplates/', l);
     });
     //this.getItem('learningTemplates', params).then(this.mapToNumericalKeys);
   }

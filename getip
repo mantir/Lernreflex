@@ -19,7 +19,7 @@ echo "module.exports = {ip:ip};" >> localip.js
 
 #Change IP in iOS project
 url="//.*:8081/index.ios.bundle"
-sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/reflect/AppDelegate.m
+sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/Lernreflex/AppDelegate.m
 
 #Change IP in iOS debugger
 url="//.*:%zd/debugger-proxy?role=client"

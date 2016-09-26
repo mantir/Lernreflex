@@ -1,5 +1,6 @@
 'use strict'
-import Model from 'reflect/models/Model';
+import Model from 'Lernreflex/models/Model';
+import {User} from 'Lernreflex/imports'
 
 class Activity extends Model{
 
@@ -7,19 +8,6 @@ class Activity extends Model{
     super('Activity');
     this.urls = {
       activities: ''
-    }
-    this.scales = {
-      progress: {unit:'%', values:[0, 10,20,30,40,50,60,70,80,90,100]},
-      time: {unit:'h', values:['< 10', '> 10', '> 25', '> 50', '> 100', '> 200', '> 500']},
-      interest: {unit:'', values:['Klein', 'Mittel', 'Groß']}
-    };
-    this.definition = {
-      operator: '*',
-      forActivity: '*',
-      catchwords:['*'],
-      subActivitys: ['*'],
-      superActivitys: ['*'],
-      learningProjectName: '*'
     };
     this.setApi(1);
   }
@@ -38,29 +26,38 @@ class Activity extends Model{
     }
   }
 
-  asssess(obj){
+  comment(obj){
     return this.put('progress/'+obj.user+'/activities/', obj);
+  }
+
+  getActivities(courseId){
+    let user = new User();
+    let _this = this;
+    return user.isLoggedIn().then((u) => {
+      return _this.get('courses/'+courseId+'/activities', {userId:u.username, password:u.password}).then((d) => {
+        let activities = [];
+        if(d[0] && d[0].activityTypes && d[0].activityTypes.length) {
+          d[0].activityTypes.map((at) => {
+            let acts = at.activities.map((a) => {
+              a.activityType = at.name;
+              a.type = 'activity';
+              activities.push(a);
+            });
+            return acts;
+          });
+        }
+        console.log('ACT:',activities);
+        return activities;
+      });
+    });
   }
 
   generateID(obj){
     return obj.forActivity;
   }
 
-  getGoals(){
-    return this.getItem('goals', {}).then(this.mapToNumericalKeys);
-  }
 
-  getActivitys(){
-    //return this.isLoggedIn().then((d) => this.get('activities/', {userId:d.username, courseId:'randomString'}));
-    return this.getItem('activities', {}).then(this.mapToNumericalKeys);
-  }
 
-  addLearningTemplate(){
-
-  }
-  addCourse(){
-
-  }
 }
 
 module.exports = Activity;

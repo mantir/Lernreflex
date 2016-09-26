@@ -18,10 +18,10 @@ import {
   BackAndroid
 } from 'react-native';
 
-import Menu from 'reflect/components/Menu';
-import CompetenceView from 'reflect/components/CompetenceView';
-import BadgeList from 'reflect/components/BadgeList';
-import {styles, Router, User, UserLogin, Icon, CompetenceCreate, CompetenceList} from 'reflect/imports';
+import Menu from 'Lernreflex/components/Menu';
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import BadgeList from 'Lernreflex/components/BadgeList';
+import {styles, Router, User, UserLogin, Icon, CompetenceCreate, CompetenceList} from 'Lernreflex/imports';
 
 
 var _navigator; // we fill this up upon on first navigation.
@@ -42,7 +42,7 @@ class reflect extends Component {
     this.routeMapper = {
       test: 4
     }
-    this.systemName = 'Reflect';
+    this.systemName = Router.systemName;
     this.user = new User();
     var _this = this;
     this.initialRoute = {

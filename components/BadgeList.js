@@ -10,10 +10,10 @@ import {
   ToolbarAndroid,
   Image
 } from 'react-native';
-//import BadgeView from 'reflect/components/BadgeView';
-import Badge from 'reflect/models/Badge';
-import styles from 'reflect/styles';
-import Router from 'reflect/Router';
+//import BadgeView from 'Lernreflex/components/BadgeView';
+import Badge from 'Lernreflex/models/Badge';
+import styles from 'Lernreflex/styles';
+import Router from 'Lernreflex/Router';
 
 
 class BadgeList extends Component{
@@ -88,7 +88,7 @@ class BadgeList extends Component{
               {rowData.done ? <Image
                 style={styles._.icon}
                 resizeMode='cover'
-                source={require('reflect/img/sign-check-icon.png')}
+                source={require('Lernreflex/img/sign-check-icon.png')}
               /> : ''}
             </Text>
           </View>

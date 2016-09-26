@@ -20,7 +20,7 @@ import {
   User,
   CompetenceList,
   InputScrollView
-} from 'reflect/imports';
+} from 'Lernreflex/imports';
 /*Props need to contain a onLogin function which will be called after the login was successfull*/
 
 class UserLogin extends Component{
@@ -65,7 +65,7 @@ class UserLogin extends Component{
           );
         } else return false;
       } else {
-          return <Loader />
+          return <Loader color="#FFF" />
       }
   }
 

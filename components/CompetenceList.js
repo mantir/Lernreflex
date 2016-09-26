@@ -9,12 +9,13 @@ import {
   Text,
   View,
   NavigatorIOS,
-  ToolbarAndroid
+  ToolbarAndroid,
+  RefreshControl
 } from 'react-native';
-import CompetenceView from 'reflect/components/CompetenceView';
-import CourseView from 'reflect/components/CourseView';
-import ListEntryCompetence from 'reflect/components/ListEntryCompetence';
-import {Router, styles, Competence, CompetenceCreate} from 'reflect/imports';
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import CourseView from 'Lernreflex/components/CourseView';
+import ListEntryCompetence from 'Lernreflex/components/ListEntryCompetence';
+import {Router, styles, Competence, Loader, CompetenceCreate, UserList, Icon} from 'Lernreflex/imports';
 
 
 class CompetenceList extends Component{
@@ -22,6 +23,7 @@ class CompetenceList extends Component{
   constructor(){
     super();
     this.unmounting = true;
+    this.Competence = new Competence();
     var ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2,
       sectionHeaderHasChanged : (s1, s2) => s1 !== s2,
@@ -30,14 +32,31 @@ class CompetenceList extends Component{
     });
     this.state = {
       dataSource: ds,
-      loaded: false
+      loaded: false,
+      refreshing: false,
+      firstLoading: true,
+      iconsLoaded:0
     };
     this.renderRow = this.renderRow.bind(this);
     this.renderSectionHeader = this.renderSectionHeader.bind(this);
+    this.loadData = this.loadData.bind(this);
+    this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
+  }
+
+  componentWillMount() {
+    let icons = [
+      ['ios-contacts']
+    ];
+    Icon.getImageSource('ios-contacts', 30)
+      .then((source) => this.setState({ communityIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
   }
 
   componentDidMount(){
     this.unmounting = false;
+    this.loadData();
+  }
+
+  afterCompetenceCreate(){
     this.loadData();
   }
 
@@ -58,7 +77,7 @@ class CompetenceList extends Component{
   /*
   * Converts the returned data into displayable data
   */
-  competencesToView(comps){
+  competencesToView(comps, notAsTree){
     var viewCompetence = {
       competence:'',
       percent: ''
@@ -66,22 +85,40 @@ class CompetenceList extends Component{
     var sectionIDs = [];
     var rowIDs = [];
     var dataBlob = {};
+
+    var _this = this;
     //if(!this.once) alert(JSON.stringify(comps));
-    Object.keys(comps).map((k) => {
-      if(!dataBlob[k]){
-        sectionIDs.push(k);
-        dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
-        rowIDs[dataBlob[k].index] = comps[k];
-      }
-      comps[k].map((comp) => {
-        dataBlob[k + ':' + comp] = {
-          competence:comp,
-          percent:10,
-          type:'competence',
-          isGoal:this.props.type == 'goals'
+    if(!notAsTree) { //Results came as tree, use always this
+      Object.keys(comps).map((k) => {
+        if(!comps[k]) return;
+        if(!dataBlob[k]){
+          sectionIDs.push(k);
+          dataBlob[k] = {title:k, index:rowIDs.length, type:comps[k][0].inCourse ? 'course' : 'learningTemplate'};
+          console.log(comps[k]);
+          rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
         }
+
+        comps[k].map((comp) => {
+          dataBlob[k + ':' + comp.name] = _this.Competence.toView(comp, _this.props.type);
+        });
       });
-    });
+    } /*else { //Not as Tree
+      Object.keys(comps).map((k) => {
+        if(!dataBlob[k]){
+          sectionIDs.push(k);
+          dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
+          rowIDs[dataBlob[k].index] = comps[k];
+        }
+        comps[k].map((comp) => {
+          dataBlob[k + ':' + comp] = {
+            competence:comp,
+            percent:10,
+            type:'competence',
+            isGoal:this.props.type == 'goals'
+          }
+        });
+      });
+    }*/
     this.once = true;
     console.log(dataBlob, sectionIDs, rowIDs);
     return {dataBlob, sectionIDs, rowIDs};
@@ -89,19 +126,21 @@ class CompetenceList extends Component{
 
   loadData(){
     var _this = this;
-    var competence = new Competence();
+    var competence = this.Competence;
     //alert(this.props.type);
     //competence.getAllKeys().done((keys) => console.log(keys));
     //competence.removeLocal('goals');
+    this.setState({refreshing:true});
     var type = this.props.type;
     if(type === 'goals') {
       competence.getGoals().done((goals) => {
-        //console.log(goals);
+        console.log(goals);
         if(Object.keys(goals).length){
           let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(goals);
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
-            loaded: true
+            loaded: true,
+            refreshing: false
           });
         }
       });
@@ -112,7 +151,8 @@ class CompetenceList extends Component{
           let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(competences);
           _this.setState({
             dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
-            loaded: true
+            loaded: true,
+            refreshing: false
           });
         }
       });
@@ -122,18 +162,29 @@ class CompetenceList extends Component{
   rowPressed(rowData) {
     //console.warn(styles.route);
     if(rowData.type == 'competence'){
-      Router.route({
+      let route = {
         title: 'Lernziel',
         id: this.props.type == 'goals' ? 'goal' : 'competence',
+        rightButtonIcon: this.state.communityIcon,
+        onRightButtonPress: () => Router.route({
+          id:'users',
+          component: UserList,
+          passProps: {
+            communityIcon: this.state.communityIcon,
+            previousRoute: route,
+            backTo:'competence'
+          }
+        }, this.props.navigator),
         component: CompetenceView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
+        passProps: rowData
+      };
+      Router.route(route, this.props.navigator);
     } else if(rowData.type == 'course'){
       Router.route({
         title: 'Gruppe',
         id: 'group',
         component: CourseView,
-        passProps: {data: rowData}
+        passProps: rowData
       }, this.props.navigator);
     }
     return true;
@@ -150,15 +201,16 @@ class CompetenceList extends Component{
   }
 
   renderSectionHeader(rowData, id){
-    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
+    let cstyle = rowData.type == 'course' ? styles.list.liHead2 : styles.list.liHead;
+    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={cstyle}>
       <View>
         <View style={styles.list.rowContainer}>
           <View style={styles.list.textContainer}>
             <Text style={styles.list.headText}>
-              {rowData.title}
+              {rowData.title + (rowData.type == 'course' ? ' (Kurs)' : '')}
             </Text>
             <Text style={styles.list.right}>
-              {rowData.percent}%
+              {/*rowData.percent+'%'*/}
             </Text>
           </View>
         </View>
@@ -176,16 +228,20 @@ class CompetenceList extends Component{
         style={styles.list.li} />
   }
 
+  _onRefresh() {
+    this.loadData();
+  }
+
   render(){
     return <View style={styles.wrapper}>
       <ListView
+        refreshControl={ <RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
         style={styles._.list}
         dataSource={this.state.dataSource}
         enableEmptySections={true}
         renderRow={this.renderRow}
         renderSectionHeader={this.renderSectionHeader}>
       </ListView>
-
     </View>
   }
 

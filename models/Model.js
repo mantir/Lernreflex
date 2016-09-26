@@ -3,7 +3,7 @@ import {
   Platform,
   AsyncStorage
 } from 'react-native';
-import ip from 'reflect/localip';
+import ip from 'Lernreflex/localip';
 
 class Model{
   constructor(className){
@@ -18,13 +18,13 @@ class Model{
     this.api0 = this.host+'competences/';
     this.api = this.api1;
     this.headers = {
-      //'Accept' : 'application/json',
+      'Accept' : 'application/json',
       //'Content-Type' : 'application/json',
       //'Host' : this.host
     };
     this.putHeaders = {
-      'Accept' : 'application/json',
-      'Content-Type' : 'application/json',
+      //'Accept' : 'text/plain',
+      'Content-Type' : 'application/json', //Muss gesetzt sein!
       //'Host' : this.host
     };
     this.className = className; //Dont use this.constructor.name because it will be something else when building
@@ -44,7 +44,7 @@ class Model{
     let req = {
       method: 'PUT',
       headers: this.putHeaders,
-      body: JSON.stringify(body)
+      body: JSON.stringify(body)//.replace(/\\/,'')
     }
     return this.fetch(url, req);
   }
@@ -80,9 +80,13 @@ class Model{
     const delay = 10*1000; //Abstand zwischen 2 gleichen GET-Requests (Sonst aus Cache)
     var request = this.lastRequest = {url: url, req: req};
     var caching = req.method.toUpperCase() === 'GET' && !nocache;
+    var errorCallback = (d) => {
+      console.log('ERROR', d);
+    };
     var callback = (response) => {
       var contentType = response.headers ? response.headers.get('content-type') : '';
-      //alert(contentType);
+      //console.log(contentType);
+
       var processResponse = (d) => {
         if(typeof(d) === 'string' && d.indexOf('Request failed') > -1)
           throw 'Grizzly request failed.';
@@ -94,15 +98,15 @@ class Model{
       if(contentType && contentType.indexOf('application/json') !== -1) {
         return response.text().then((d) => {
           try {
-            console.log('parsed JSON');
+            //console.log('parsed JSON');
             return processResponse(JSON.parse(d));
           } catch (e) {
             console.log('parsed Error' + d);
             return processResponse(d);
           }
-        });
+        }, errorCallback);
       } else {
-        return response.text().then(processResponse);
+        return response.text().then(processResponse, errorCallback);
       }
     }
     caching = false;
@@ -111,7 +115,11 @@ class Model{
       .then((d) => d && Date.now() - d < delay ? this.getItem(request.url, {}) : fetch(url, request))
       .then(callback);
     }
-    return fetch(url, req).then(callback);
+    //console.log(url);
+    //console.log(req);
+    var requestObject = new Request(url, req);
+    console.log(requestObject);
+    return fetch(requestObject).then(callback, errorCallback);
   }
 
   delete(url){

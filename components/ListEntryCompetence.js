@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import styles from 'reflect/styles';
+import styles from 'Lernreflex/styles';
 
 class ListEntryCompetence extends Component{
   constructor(){
@@ -66,10 +66,10 @@ class ListEntryCompetence extends Component{
       <View style={styles.list.rowContainer}>
         <View style={styles.list.textContainer}>
           <Text style={styles.list.text}>
-            {rowData.title}
+            {rowData.name}
           </Text>
           <Text style={styles.list.right}>
-            {rowData.percent}%
+            {rowData.percent}
           </Text>
         </View>
       </View>
@@ -86,7 +86,6 @@ class ListEntryCompetence extends Component{
       onPress={this.props.onPress}
       style={this.props.style}>
       {this['_'+this.type](this.props.rowData)}
-
     </TouchableHighlight>
   }
 }
