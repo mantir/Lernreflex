@@ -29,10 +29,11 @@ var general = StyleSheet.create({
   },
   tab:{
     flex:1,
+    flexDirection:'column',
     backgroundColor: secondary,
     justifyContent:'center',
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 20,
+    paddingBottom: 20,
     borderWidth:1,
     borderColor:white
   },
@@ -153,6 +154,9 @@ var list = StyleSheet.create({
   liHead:{
     backgroundColor: '#67B8D4',
   },
+  liHead2:{
+    backgroundColor: '#67D8D4',
+  },
   right:{
     color: gray,
     alignItems:'flex-end',
@@ -162,10 +166,12 @@ var list = StyleSheet.create({
     flex:1,
     color: '#FFF',
     alignSelf:'flex-start',
+    fontSize:20
   },
   text: {
     flex:1,
     alignSelf:'flex-start',
+    fontSize: 18
   },
   textContainer: {
     flexDirection: 'row',
@@ -182,7 +188,11 @@ list.liHeadHover =  general.navBg;
 var competence = StyleSheet.create({
   title: {
     fontSize: 20,
-    margin: 20
+    margin:20
+  },
+  superTitle:{
+    margin: 10,
+    marginBottom:0,
   },
   sectionHead:{
     fontSize:18,

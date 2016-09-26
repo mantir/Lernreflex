@@ -1,6 +1,8 @@
 'use strict'
 import React from 'react';
 var Router = {
+  systemName: 'Lernreflex',
+  adminName: 'mkapp',
   icons: {
     goals:'ios-pie-outline',
     badges:'md-ribbon',
@@ -19,12 +21,15 @@ var Router = {
         route.title = 'Lernziele';
       break;
       case 'competences':
+        route.passProps = {...route.passProps, type:'competences'};
         route.title = 'Kompetenzen';
       break;
       case 'goal':
+        route.passProps = {...route.passProps, type:'goals'};
         route.title = 'Lernziel';
       break;
       case 'competence':
+        route.passProps = {...route.passProps, type:'competences'};
         route.title = 'Kompetenz';
       break;
       case 'goal.add':
@@ -38,6 +43,9 @@ var Router = {
       case 'user.login':
         route.title = 'Einloggen';
       break;
+      case 'users':
+        route.title = 'Mitlerner';
+      break;
       case 'menu':
         route.title = 'Menü';
       break;
@@ -46,6 +54,9 @@ var Router = {
       break;
       case 'badges':
         route.title = 'Badges';
+      break;
+      case 'admin':
+        route.title = 'Admin';
       break;
     }
     if(!navigator){
@@ -58,11 +69,13 @@ var Router = {
         navigator.replace(route);
       if(params.reset)
         navigator.resetTo(route);
+      if(params.replacePrevious)
+        navigator.replacePreviousAndPop(route);
     }
   },
   renderRoute(route, navigator){
       route = this.route(route);
-      return (<route.component navigator={navigator} title={route.title} {...route.passProps} />);
+      return (<route.component navigator={navigator} route={route} title={route.title} {...route.passProps} />);
   },
 
 }
