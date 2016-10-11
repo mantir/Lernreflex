@@ -139,6 +139,7 @@ class Lernreflex extends Component {
         <TabBarIOS
           translucent={true}
           tintColor={styles._.secondary}
+          unselectedTintColor={styles._.tabIconColor}
           barTintColor="white">
           <Icon.TabBarItemIOS
             iconSize={iconSize}
@@ -150,6 +151,7 @@ class Lernreflex extends Component {
               });
             }}>
             {this._renderNavigator({
+              id:'goals',
               title: 'Lernziele',
               component: CompetenceList,
               rightButtonTitle: 'Hinzufügen',
