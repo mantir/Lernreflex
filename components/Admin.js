@@ -11,7 +11,7 @@ import {
   NavigatorIOS,
   Platform
 } from 'react-native';
-import {styles, Router, User, Course, Loader} from 'Lernreflex/imports';
+import {styles, Router, User, lib, Course, Loader} from 'Lernreflex/imports';
 
 
 class Admin extends Component{
@@ -22,7 +22,8 @@ class Admin extends Component{
       loading:false,
       courseId:'',
       printableName:'',
-      competences:''
+      competences:'',
+      competenceForQuestion:''
     };
     this.render = this.render.bind(this);
   }
@@ -47,7 +48,7 @@ class Admin extends Component{
   }
 
   createCourse(){
-    let competences = this.state.competences.split(',');
+    let competences = this.state.competences.split(';');
     let course_obj = {
       courseId: this.state.courseId,
       printableName: this.state.printableName,
@@ -69,6 +70,24 @@ class Admin extends Component{
     </TouchableHighlight>
     } else {
       return <Loader color={styles._.primary} />
+    }
+  }
+
+  _renderSaveQuestionButton(){
+    return <TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.saveQuestions()}>
+    <Text style={[styles._.buttonText, styles._.big]}>Kompetenzfragen speichern</Text>
+  </TouchableHighlight>
+  }
+
+  saveQuestions(){
+    let u = new User();
+    let questions = lib.constants.generalCompetenceQuestions;
+    for(var i in questions){
+      let q = {
+        question: questions[i].text,
+        competenceId: this.state.competenceForQuestion
+      };
+      u.post('competences/questions', q).then((d) => console.log(d));
     }
   }
 
@@ -109,9 +128,21 @@ class Admin extends Component{
           style={styles.comp.input}
           returnKeyType="next"
           blurOnSubmit={false}
-          placeholder="competences">
+          placeholder="Kompetenzen (Mit ; getrennt)">
         </TextInput>
         {this._renderSaveCourseButton()}
+        <TextInput
+          ref="competenceForQuestion"
+          onChangeText={(competenceForQuestion) => this.setState({competenceForQuestion})}
+          value={this.state.competenceForQuestion}
+          multiline={true}
+          editable={!this.state.loading}
+          style={styles.comp.input}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          placeholder="Kompetenz für Fragen">
+        </TextInput>
+        {this._renderSaveQuestionButton()}
     </ScrollView>
   }
 }

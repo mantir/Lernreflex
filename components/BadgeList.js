@@ -32,30 +32,32 @@ class BadgeList extends Component{
     this.renderRow = this.renderRow.bind(this);
   }
 
-  componentDidMount(){
-    this.unmounting = false;
-    this.componentDidUpdate();
-  }
-
   componentWillUnmount(){
     this.unmounting = true;
   }
 
-  componentDidUpdate(){
+  componentDidMount(){
+    this.unmounting = false;
     var _this = this;
     var badge = new Badge();
     //alert(this.props.type);
     //badge.getAllKeys().done((keys) => console.log(keys));
     //badge.removeLocal('goals');
     var type = this.props.type;
-    badge.getBadges().done((badges) => {
+    badge.getUserBadges().then((badges) => {
+      _this.setState({
+        dataSource: _this.state.dataSource.cloneWithRows(badges),
+        loaded: true
+      });
+    });
+    /*badge.getBadges().done((badges) => {
       if(badges.length && !_this.unmounting){
         _this.setState({
           dataSource: _this.state.dataSource.cloneWithRows(badges),
           loaded: true
         });
       }
-    });
+    });*/
   }
 
   rowPressed(rowData) {
@@ -77,12 +79,18 @@ class BadgeList extends Component{
   }
 
   renderRow(rowData){
-    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
+    rowData.done = true;
+    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
       <View>
         <View style={styles.list.rowContainer}>
+          <Image
+            style={{height:50, width:50}}
+            resizeMode='contain'
+            source={{uri:rowData.png}}
+          />
           <View style={styles.list.textContainer}>
-            <Text style={styles.list.headText}>
-              {rowData.title}
+            <Text style={styles.list.text}>
+              {rowData.name}
             </Text>
             <Text style={styles.list.right}>
               {rowData.done ? <Image

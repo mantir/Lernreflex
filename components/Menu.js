@@ -20,14 +20,14 @@ class Menu extends Component{
     this.user = new User();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.links = [
-      {title: 'Empfohlene Lernziele', route:{
+/*      {title: 'Empfohlene Lernziele', route:{
         id: 'goals',
         component: CompetenceList,
         title:'FFF',
         passProps:{
           color: '#000'
         }
-      }},
+      }},*/
       {title: 'Logout', route:{'id': 'user.logout'}},
     ];
     var _this = this;
@@ -37,7 +37,7 @@ class Menu extends Component{
     }
     this.renderRow = this.renderRow.bind(this);
     user.isLoggedIn().then((u) => {
-      if(u.username == Router.adminName) {
+      if(Router.adminNames.indexOf(u.username) > -1) {
         _this.links.push({title: 'Admin', route:{'id': 'admin', component: Admin}});
       }
       _this.setState({
@@ -56,11 +56,11 @@ class Menu extends Component{
   }
 
   renderRow(rowData){
-    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
+    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
       <View>
         <View style={styles.list.rowContainer}>
           <View style={styles.list.textContainer}>
-            <Text style={styles.list.headText}>
+            <Text style={styles.list.text}>
               {rowData.title}
             </Text>
           </View>
@@ -75,6 +75,7 @@ class Menu extends Component{
       <ListView
         style={styles._.list}
         dataSource={this.state.links}
+        contentContainerStyle={{flex:1}}
         renderRow={this.renderRow}>
       </ListView>
     </View>

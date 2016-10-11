@@ -9,6 +9,7 @@ import {
   Text,
   View,
   NavigatorIOS,
+  ScrollView,
   ToolbarAndroid,
   RefreshControl
 } from 'react-native';
@@ -34,7 +35,6 @@ class CompetenceList extends Component{
       dataSource: ds,
       loaded: false,
       refreshing: false,
-      firstLoading: true,
       iconsLoaded:0
     };
     this.renderRow = this.renderRow.bind(this);
@@ -45,23 +45,46 @@ class CompetenceList extends Component{
 
   componentWillMount() {
     let icons = [
-      ['ios-contacts']
+      [Router.icons.community]
     ];
-    Icon.getImageSource('ios-contacts', 30)
+    Icon.getImageSource(Router.icons.community, 30)
       .then((source) => this.setState({ communityIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
   }
 
   componentDidMount(){
     this.unmounting = false;
+    this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections({'loader:loader': 'loader'}, ['loader'], [['loader']])});
     this.loadData();
   }
 
   afterCompetenceCreate(){
-    this.loadData();
+    this.loadData(false);
   }
 
   componentWillReceiveProps(){
+    console.log('CompetenceList componentWillReceiveProps');
+  }
 
+  updateChanges(){
+    let comp = new Competence();
+    let competences = this.state.competences;
+    let _this = this;
+    let promises = [];
+    let counter = 0;
+    comp.mayApplyLocalChanges(competences, '{}.{}.name', '-', comp.toView.bind(comp)).then((comps) => {
+      if(comps){
+        this.loadData(false);
+      } else return;
+      _this.setState({competences:comps, dataSource: _this.getDatasource(comps)});
+    });
+
+    /*if(promises.length) {
+      Promise.all(promises).then(() => {
+        //console.log('AFTER', competences);
+
+      }).then(() => counter > 0 ? this.loadData(false) : null);
+    }
+    */
   }
 
   componentWillUnmount(){
@@ -87,46 +110,38 @@ class CompetenceList extends Component{
     var dataBlob = {};
 
     var _this = this;
-    //if(!this.once) alert(JSON.stringify(comps));
-    if(!notAsTree) { //Results came as tree, use always this
-      Object.keys(comps).map((k) => {
-        if(!comps[k]) return;
-        if(!dataBlob[k]){
-          sectionIDs.push(k);
-          dataBlob[k] = {title:k, index:rowIDs.length, type:comps[k][0].inCourse ? 'course' : 'learningTemplate'};
-          console.log(comps[k]);
-          rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
-        }
+    Object.keys(comps).map((k) => {
+      if(!comps[k]) return;
+      if(!dataBlob[k]){
+        sectionIDs.push(k);
+        dataBlob[k] = {title:k, index:rowIDs.length, type:comps[k][0].inCourse ? 'course' : 'learningTemplate'};
+        console.log(comps[k]);
+        rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
+      }
 
-        comps[k].map((comp) => {
-          dataBlob[k + ':' + comp.name] = _this.Competence.toView(comp, _this.props.type);
-        });
+      comps[k].map((comp) => {
+        dataBlob[k + ':' + comp.name] = comp;
       });
-    } /*else { //Not as Tree
-      Object.keys(comps).map((k) => {
-        if(!dataBlob[k]){
-          sectionIDs.push(k);
-          dataBlob[k] = {title:k, index:rowIDs.length, type:'course'};
-          rowIDs[dataBlob[k].index] = comps[k];
-        }
-        comps[k].map((comp) => {
-          dataBlob[k + ':' + comp] = {
-            competence:comp,
-            percent:10,
-            type:'competence',
-            isGoal:this.props.type == 'goals'
-          }
-        });
-      });
-    }*/
-    this.once = true;
+    });
     console.log(dataBlob, sectionIDs, rowIDs);
     return {dataBlob, sectionIDs, rowIDs};
   }
 
-  loadData(){
+  getDatasource(competences){
+    let {dataBlob, sectionIDs, rowIDs} = this.competencesToView(competences);
+    return this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs);
+  }
+
+  emptyList(){
+    this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections({'empty:empty':
+      {id:'empty', text:'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'Erreichten Lernziele.') + '\n' + 'Lege mit dem + oben eins an.'}}, ['empty'], [['empty']])
+    });
+  }
+
+  loadData(caching = true){
     var _this = this;
-    var competence = this.Competence;
+    var competence = new Competence(caching);
+    console.log('loading');
     //alert(this.props.type);
     //competence.getAllKeys().done((keys) => console.log(keys));
     //competence.removeLocal('goals');
@@ -136,32 +151,33 @@ class CompetenceList extends Component{
       competence.getGoals().done((goals) => {
         console.log(goals);
         if(Object.keys(goals).length){
-          let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(goals);
           _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
+            dataSource: _this.getDatasource(goals),
             loaded: true,
-            refreshing: false
+            refreshing: false,
+            competences: goals
           });
-        }
+        } else this.emptyList();
       });
     } else {
       competence.getCompetences().done((competences) => {
         console.log(competences);
         if(Object.keys(competences).length){
-          let {dataBlob, sectionIDs, rowIDs} = _this.competencesToView(competences);
           _this.setState({
-            dataSource: _this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs),
+            dataSource: _this.getDatasource(competences),
             loaded: true,
-            refreshing: false
+            refreshing: false,
+            competences: competences
           });
-        }
+        } else this.emptyList();
       });
     }
   }
 
   rowPressed(rowData) {
-    //console.warn(styles.route);
     if(rowData.type == 'competence'){
+      rowData.updateChanges = this.updateChanges.bind(this);
+      rowData.communityIcon = this.state.communityIcon;
       let route = {
         title: 'Lernziel',
         id: this.props.type == 'goals' ? 'goal' : 'competence',
@@ -171,36 +187,43 @@ class CompetenceList extends Component{
           component: UserList,
           passProps: {
             communityIcon: this.state.communityIcon,
-            previousRoute: route,
-            backTo:'competence'
+            previousRoute: {...route},
+            backTo:'competence',
+            competenceData: rowData.competenceData
           }
         }, this.props.navigator),
         component: CompetenceView,
-        passProps: rowData
+        passProps: {...rowData}
       };
+      if(!rowData.courseId) { //Nur Community Icon anzeigen, wenn Kompetenz in Kurs
+        delete route.rightButtonIcon;
+        delete route.onRightButtonPress;
+      }
       Router.route(route, this.props.navigator);
     } else if(rowData.type == 'course'){
-      Router.route({
+      /*Router.route({
         title: 'Gruppe',
         id: 'group',
         component: CourseView,
         passProps: rowData
-      }, this.props.navigator);
+      }, this.props.navigator);*/
     }
     return true;
   }
 
   getSectionData(dataBlob, sectionID){
     //console.log(dataBlob[sectionID], sectionID);
-      return dataBlob[sectionID];
+    return dataBlob[sectionID];
   }
 
   getRowData(dataBlob, sectionID, rowID){
     //console.log(dataBlob[sectionID + ':' + rowID], sectionID + ':' + rowID);
-      return dataBlob[sectionID + ':' + rowID];
+    return dataBlob[sectionID + ':' + rowID];
   }
 
   renderSectionHeader(rowData, id){
+    if(id == 'loader') return null;
+    if(id == 'empty') return null;
     let cstyle = rowData.type == 'course' ? styles.list.liHead2 : styles.list.liHead;
     return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={cstyle}>
       <View>
@@ -220,6 +243,7 @@ class CompetenceList extends Component{
   }
 
   renderRow(rowData){
+    console.log(rowData);
       return <ListEntryCompetence
         type='competence'
         underlayColor={styles.list.liHover}
@@ -229,10 +253,15 @@ class CompetenceList extends Component{
   }
 
   _onRefresh() {
-    this.loadData();
+    this.loadData(false);
   }
 
   render(){
+    /*if(!this.state.loaded) {
+      return <ScrollView style={styles.wrapper}>
+        <Loader />
+      </ScrollView>
+    }*/
     return <View style={styles.wrapper}>
       <ListView
         refreshControl={ <RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
