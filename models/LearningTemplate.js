@@ -2,8 +2,8 @@
 import Model from 'Lernreflex/models/Model';
 
 class LearningTemplate extends Model{
-  constructor(){
-    super('LearningTemplate');
+  constructor(caching = false){
+    super('LearningTemplate', caching);
     this.definition = {
         userName: '*',
         groupId: '*',

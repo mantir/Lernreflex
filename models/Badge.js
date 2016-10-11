@@ -1,5 +1,6 @@
 'use strict'
 import Model from 'Lernreflex/models/Model';
+import {User} from 'Lernreflex/imports';
 
 class Badge extends Model{
   constructor(){
@@ -12,6 +13,11 @@ class Badge extends Model{
 
   getBadges(){
     return this.getItem('badges', {}).then(this.mapToNumericalKeys).then(this.dummyData);
+  }
+
+  getUserBadges(){
+    let user = new User();
+    return user.isLoggedIn().then((u) => this.get('progress/badges', {userId:u.username, password:u.password}));
   }
 
   dummyData(){

@@ -10,7 +10,7 @@ import {
   NavigatorIOS,
   Platform
 } from 'react-native';
-import {styles, Router, User, CompetenceList, CompetenceView, ActivityView, Loader} from 'Lernreflex/imports';
+import {styles, Router, User, CompetenceList, CompetenceView, ActivityView, ListEntryCompetence, Loader, Icon} from 'Lernreflex/imports';
 
 
 class UserList extends Component{
@@ -20,51 +20,89 @@ class UserList extends Component{
     this.user = new User();
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     var _this = this;
-    let user = new User();
     this.state = {
       dataSource: ds,
+      mySelf:{}
     }
     this.renderRow = this.renderRow.bind(this);
   }
 
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  setState(input){
+    if(!this.unmounting){
+      super.setState(input);
+    }
+  }
+
   componentDidMount(){
     this.unmounting = false;
-    this.loadData();
+    let user = new User(false);
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows(['loader'])
+    });
+    user.getCurrentUser().then((cu) => {
+      user.isLoggedIn().then((u) => {
+        console.log(u, cu);
+        if(user.different(u, cu)) {
+          this.setState({currentUser: cu, mySelf: u});
+        } else
+        this.setState({mySelf: u});
+        this.loadData();
+      });
+    })
   }
 
   loadData(){
     let user = new User();
     let _this = this;
-    user.getUsers().then((d) => {
-      _this.setState({dataSource: _this.state.dataSource.cloneWithRows(d)});
-      console.log('USERS:', d);
+    user.getUsers(this.props.competenceData.courseId).then((d) => {
+      user.isLoggedIn().then((u) => {
+        if(_this.state.currentUser) {
+          u.id = 'mySelf';
+          d.unshift(u);
+          d.unshift({name:'currentUser'});
+        }
+         _this.setState({dataSource: _this.state.dataSource.cloneWithRows(d)});
+      })
+      //console.log('USERS:', d);
     });
   }
 
   rowPressed(rowData) {
-    let route = this.props.previousRoute;
+    let route = {...this.props.previousRoute};
+    //console.log(this.props.previousRoute);
     if(!route.passProps){
       route.passProps = {};
     }
+    if(rowData.id == 'mySelf') rowData = false;
     route.passProps.currentUser = rowData;
     route.component = this.props.backTo == 'competence' ? CompetenceView : ActivityView;
-    console.log(route);
-    Router.route(route, this.props.navigator, {replacePrevious:true});
+    console.log('user slected', route.passProps);
+    let user = new User();
+    user.setCurrentUser(rowData).then(() => {
+      Router.route(route, this.props.navigator, {replacePrevious:true});
+    })
   }
+  renderUser(){
+      return <ListEntryCompetence
+        type="currentUser"
+        underlayColor={styles._.primary}
+        onPress={() => this.showUsers()}
+        rowData={this.state.currentUser} />
+    }
 
   renderRow(rowData){
-    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
-      <View>
-        <View style={styles.list.rowContainer}>
-          <View style={styles.list.textContainer}>
-            <Text style={styles.list.headText}>
-              {rowData.name}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.list.separator} />
-      </View>
-    </TouchableHighlight>
+    //if(rowData == 'loader') return null;
+    if(rowData.name == 'currentUser') return this.renderUser();
+    if(rowData.name == this.state.mySelf.username) return null;
+    return <ListEntryCompetence
+      type="user"
+      underlayColor={styles._.primary}
+      onPress={() => this.rowPressed(rowData)}
+      rowData={rowData} />
   }
 
   render(){

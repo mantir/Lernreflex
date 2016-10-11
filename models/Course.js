@@ -2,8 +2,8 @@
 import Model from 'Lernreflex/models/Model';
 
 class Course extends Model{
-  constructor(){
-    super('Course');
+  constructor(caching = true){
+    super('Course', caching);
     this.definition = {
         courseId: '*',
         competences: ['*'],
