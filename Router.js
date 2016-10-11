@@ -2,13 +2,16 @@
 import React from 'react';
 var Router = {
   systemName: 'Lernreflex',
-  adminName: 'mkapp',
+  adminNames: ['mkapp', 'admin'],
   icons: {
     goals:'ios-pie-outline',
     badges:'md-ribbon',
     notifications:'md-notifications',
     competences:'md-school',
     menu:'md-menu',
+    community:'ios-contacts',
+    person:'ios-person',
+    addRound:'ios-add-circle',
   },
 
   route(route, navigator, params){
@@ -23,6 +26,10 @@ var Router = {
       case 'competences':
         route.passProps = {...route.passProps, type:'competences'};
         route.title = 'Kompetenzen';
+      break;
+      case 'questions':
+        route.passProps = {...route.passProps};
+        route.title = 'Reflexionsfragen';
       break;
       case 'goal':
         route.passProps = {...route.passProps, type:'goals'};
@@ -41,7 +48,7 @@ var Router = {
         route.passProps = {...route.passProps, type: 'competences', inputTitle:'Kompetenz eingeben'};
       break;
       case 'user.login':
-        route.title = 'Einloggen';
+        if(!route.title) route.title = 'Einloggen';
       break;
       case 'users':
         route.title = 'Mitlerner';
@@ -58,7 +65,12 @@ var Router = {
       case 'admin':
         route.title = 'Admin';
       break;
+      case 'select':
+        route.leftButtonTitle = 'Abbrechen';
+        route.onLeftButtonPress = () => navigator.pop();
+      break;
     }
+    console.log(route);
     if(!navigator){
       return route;
     }
@@ -69,8 +81,9 @@ var Router = {
         navigator.replace(route);
       if(params.reset)
         navigator.resetTo(route);
-      if(params.replacePrevious)
+      if(params.replacePrevious) {
         navigator.replacePreviousAndPop(route);
+      }
     }
   },
   renderRoute(route, navigator){

@@ -11,6 +11,7 @@ var brighterPrimary = '#6cb9d4';
 var secondary = '#EC7426';
 var secondaryDark = '#ac5720';
 var secondaryBright = '#f59150';
+var tabIconColor = '#AAA';
 var white = '#FFF';
 var gray = '#333';
 var lightGray = '#EEE';
@@ -33,10 +34,8 @@ var general = StyleSheet.create({
     flexDirection:'column',
     backgroundColor: secondary,
     justifyContent:'center',
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderWidth:1,
-    borderColor:white
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   tabActive:{
     backgroundColor:white
@@ -46,13 +45,8 @@ var general = StyleSheet.create({
     color: secondary,
   },
   otherBG:{
-    backgroundColor:lightGray,
     paddingTop:10,
-    paddingBottom:10
-  },
-  tabContainer:{
-    flex:1,
-    flexDirection:'row'
+    backgroundColor:lightGray,
   },
   buttonText: {
     color: '#fff',
@@ -63,7 +57,7 @@ var general = StyleSheet.create({
   },
   navWrap: {
     flex: 1,
-    marginTop: 0
+    flexDirection:'column'
   },
   nav: {
     flex: 1,
@@ -75,6 +69,7 @@ var general = StyleSheet.create({
   wrapper: {
     flex:1,
     flexDirection:'column',
+    backgroundColor:'#FFF'
     //paddingTop:topHeight
     //paddingTop: ios ? iosTop : topHeight
   },
@@ -83,15 +78,15 @@ var general = StyleSheet.create({
     paddingTop: ios ? topHeight : topHeight
   },
   toolbar: {
-    flex : 1,
+    flex : 0,
     backgroundColor: primaryBG,
     height: topHeight,
     marginLeft:0,
-    paddingTop:0
+    paddingTop:0,
+    marginTop:0
   },
-  actionBar: {
-    backgroundColor: primaryBG,
-    height: topHeight,
+  androidView: {
+    flex:1,
     marginTop:topHeight,
   },
   toolbarText:{
@@ -101,8 +96,9 @@ var general = StyleSheet.create({
     fontSize: 20
   },
   toolbarRight:{
-    marginTop:-10,
-    padding: 10
+    marginTop:-23,
+    marginRight:0,
+    padding: 20
   },
   icon: {
     width: 20,
@@ -121,7 +117,7 @@ var general = StyleSheet.create({
     paddingTop:10
   },
   row:{
-    flex:1,
+    flex:0,
     flexWrap: 'wrap',
     alignItems: 'center',
     flexDirection:'row',
@@ -132,6 +128,9 @@ var general = StyleSheet.create({
   },
   center:{
     alignSelf:'center'
+  },
+  justify: {
+    justifyContent:'center',
   },
   highlight:{
     color:secondary
@@ -144,12 +143,17 @@ general.navBg = primaryBG;
 general.navColor = '#FFF';
 general.navBtnColor = '#FFF';
 general.hoverBtn = secondaryBright;
+general.tabIconColor = tabIconColor;
 
 var list = StyleSheet.create({
 
   separator:{
     height: 1,
     backgroundColor:'#DDD',
+  },
+  withSeparator:{
+    borderBottomColor:'#DDD',
+    borderBottomWidth: 1,
   },
   li:{
     backgroundColor: '#FFF',
@@ -169,7 +173,7 @@ var list = StyleSheet.create({
     flex:1,
     color: '#FFF',
     alignSelf:'flex-start',
-    fontSize:20
+    fontSize:16
   },
   text: {
     flex:1,
@@ -191,7 +195,7 @@ list.liHeadHover =  general.navBg;
 var competence = StyleSheet.create({
   title: {
     fontSize: 20,
-    margin:20
+    padding: 10
   },
   superTitle:{
     margin: 10,
@@ -199,16 +203,26 @@ var competence = StyleSheet.create({
   },
   sectionHead:{
     fontSize:18,
-    marginBottom:5,
-    justifyContent:'center',
+    //justifyContent:'center',
     color:primaryBG,
-    flexDirection:'row',
+    //flexDirection:'row',
     alignSelf:'center',
-    flex:1
+    //flex:1
   },
   addBtn:{
     flex:1,
     alignSelf:'flex-end'
+  },
+  questionInput:{
+    flex:1,
+    margin: ios ? 10 : 0,
+    fontSize: 18,
+    height: 100,
+    borderWidth:1,
+    borderRadius: 5,
+    borderColor:'#CCC',
+    padding:10,
+    backgroundColor:'#FFF'
   },
   titleInput:{
     margin: ios ? 10 : 0,
@@ -218,6 +232,7 @@ var competence = StyleSheet.create({
     borderRadius: 5,
     borderColor:'#EEE',
     padding:10,
+    flex:1,
   },
   input:{
     backgroundColor:'#FFF',
@@ -253,8 +268,8 @@ var competence = StyleSheet.create({
     color:'#FFF',
   },
   slider:{
-    height: 40,
-    margin:10,
+    marginLeft: ios ? 10 : 0,
+    marginRight: ios ? 10 : 0,
   },
   commentInput: {
     fontSize: 16,
@@ -264,7 +279,11 @@ var competence = StyleSheet.create({
     alignSelf: 'stretch',
   },
   addComment:{
-    marginBottom: 20
+    paddingTop:20,
+    paddingBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex:1
   }
 });
 
@@ -300,7 +319,8 @@ var styles = {
     competenceTitle: 140,
     competenceCatchwords: 100,
     competenceGroup: 50,
-    comment: 500
+    comment: 500,
+    answer: 500
   },
   wrapper: general.wrapper,
 };
