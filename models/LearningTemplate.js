@@ -9,18 +9,20 @@ class LearningTemplate extends Model{
         groupId: '*',
         selectedTemplate: '*'
     };
+    this.courseContext = 'randomString';
     this.setApi(1);
   }
 
   save(obj){
     let key = 'learningTemplates';
     let id = this.generateID(obj);
+    obj.groupId = this.courseContext;
     obj = this.checkDefinition(obj);
     if(obj){
       return this.put('learningtemplates/'+(id), obj);
-      return this.getItem(key, {})
-        .then((comps) => {comps[id] = obj; return comps;})
-        .then((comps) => super.save(key, comps));
+      //return this.getItem(key, {})
+        //.then((comps) => {comps[id] = obj; return comps;})
+        //.then((comps) => super.save(key, comps));
     }
   }
 
@@ -32,7 +34,7 @@ class LearningTemplate extends Model{
     return this.isLoggedIn().then((d) => {
       let l = {
         userId: d.username,
-        groupId: 'randomString',
+        groupId: this.courseContext,
       };
       return this.get('learningtemplates/', l);
     });

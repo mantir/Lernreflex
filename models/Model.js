@@ -6,6 +6,8 @@ import {
 import ip from 'Lernreflex/localip';
 import lib from 'Lernreflex/lib';
 
+//Default API-URL: fleckenroller.cs.uni-potsdam.de/app/competence-base
+
 class Model {
   constructor(className, caching = true){
     this.protocol = 'http://';
@@ -14,7 +16,11 @@ class Model {
     } else {
       this.ip = ip.ip ? ip.ip : 'localhost';
     }
-    this.host = this.protocol + this.ip+':8084/';
+    if(this.ip.indexOf('fleckenroller') > -1) {
+      this.host = this.protocol + this.ip + '/';
+    } else {
+      this.host = this.protocol + this.ip+':8084/';
+    }
     this.api1 = this.host+'api1/';
     this.api0 = this.host+'competences/';
     this.api = this.api1;
@@ -85,14 +91,15 @@ class Model {
   }
 
   fetch(url, req, nocache){
-    url = this.api+url;
+    //console.log('Fecthing:', url);
+    url = this.api + url;
     const delay = this.cache_time * 1000; //Abstand zwischen 2 gleichen GET-Requests (Sonst aus Cache)
     var request = this.lastRequest = {url: url, req: req};
     var isGET = req.method.toUpperCase() === 'GET';
     var caching = this.caching && isGET && !nocache;
     var fromCache = false;
     var errorCallback = (d) => {
-      console.log('ERROR', d);
+      console.log('errorCallback:', d);
     };
     var callback = (response) => {
       var contentType = response.headers ? response.headers.get('content-type') : '';
@@ -102,6 +109,7 @@ class Model {
         return response;
       }
       var processResponse = (d) => {
+        console.log('Response:', d);
         if(typeof(d) === 'string' && d.indexOf('Request failed') > -1)
         throw 'Grizzly request failed.';
         if(isGET){ //
@@ -129,6 +137,7 @@ class Model {
       }
     }
     //caching = false;
+    console.log('Fetching:', url);
     if(caching){
       return this.getItem(request.url, false, false, true)
       .then((d) => {
@@ -138,7 +147,6 @@ class Model {
       })
       .then(callback, errorCallback);
     }
-    //console.log(url);
     //console.log(req);
     var requestObject = new Request(url, req);
     console.log(requestObject);
@@ -197,7 +205,7 @@ class Model {
   }
 
   clearStorage(){
-    return this.getAllKeys().then((keys) => AsyncStorage.multiRemove(keys));
+    return this.getAllKeys().then((keys) => keys && keys.length ? AsyncStorage.multiRemove(keys) : Promise.resolve(false));
   }
 
   mapToNumericalKeys(obj){

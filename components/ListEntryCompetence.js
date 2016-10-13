@@ -83,11 +83,14 @@ class ListEntryCompetence extends Component{
   }
 
   _select(rowData){
+    if(typeof(rowData) != 'object') {
+      rowData = {'id':false, value:rowData};
+    }
     return <View style={styles._.col}>
       <View style={styles.list.rowContainer}>
         <View style={styles.list.textContainer}>
           <Text style={styles.list.text}>
-            {rowData}
+            {rowData.value}
           </Text>
         </View>
       </View>
@@ -105,16 +108,20 @@ class ListEntryCompetence extends Component{
   }
 
   render(){
-    console.log(this.props.rowData);
     if(this.props.rowData == 'loader') {
-      return <View style={styles._.col}><Loader /></View>
+      if(Platform.OS == 'ios') {
+        return <View style={styles._.col}><Loader /></View>
+      }
+      return null;
     }
     if(this.props.rowData.id == 'empty') {
-      return <View style={[styles._.col, {alignItems: 'center'}]}>
-        <Text style={{fontSize:18, padding:10, justifyContent: 'center', alignItems: 'center', alignSelf:'center'}}>
+      return <View style={[styles._.row]}>
+      <View style={[styles._.col, {alignItems: 'center'}]}>
+        <Text style={{fontSize:18, padding:20, justifyContent: 'center', alignItems: 'center', alignSelf:'center'}}>
           {this.props.rowData.text}
         </Text>
       </View>
+    </View>
     }
     this.type = this.props.rowData.type ? this.props.rowData.type : this.props.type;
     if(!this.props.rowData) throw this.constructor.name+' needs a "rowData" object as property for type '+this.type;

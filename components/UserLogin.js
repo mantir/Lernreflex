@@ -32,20 +32,22 @@ class UserLogin extends Component{
   }
 
   tryLogin(){
-    var user = new User();
+    var user = new User(false);
     var _this = this;
     let username = this.state.username,
     password = this.state.password;
+    console.log('TRY');
     this.setState({loggingIn:true});
     user.tryLogin(username, password)
       .done((d) => {
-        _this.setState({loggingIn:false, loggedIn:d});
         if(!d){
+          _this.setState({loggingIn:false, loggedIn:d});
           Alert.alert( 'Login fehlgeschlagen', 'Nutzer oder Passwort sind fehlerhaft.', [
             {text: 'Ok', onPress: () => this.refs.username.focus()}, ]);
           return false;
         }
         user.login(username, password).done(() => {
+          _this.setState({loggingIn:false, loggedIn:d});
           this.props.onLogin();
         });
       });
@@ -82,7 +84,7 @@ class UserLogin extends Component{
           onSubmitEditing={(event) => {
             this.refs.password.focus();
           }}
-          autoComplete={false}
+          autoCorrect={false}
           editable={!this.state.loggingIn}
           autoCapitalize="none"
           autoFocus={true}

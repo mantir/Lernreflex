@@ -40,9 +40,7 @@ class BadgeList extends Component{
     this.unmounting = false;
     var _this = this;
     var badge = new Badge();
-    //alert(this.props.type);
-    //badge.getAllKeys().done((keys) => console.log(keys));
-    //badge.removeLocal('goals');
+    
     var type = this.props.type;
     badge.getUserBadges().then((badges) => {
       _this.setState({

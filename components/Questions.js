@@ -23,14 +23,11 @@ class Questions extends Component{
     var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     var _this = this;
     let user = new User();
-    let questions = [
-      {text: 'currentUser'},
-      ...lib.constants.generalCompetenceQuestions,
-      {text: 'saveButton'},
-    ];
+
     this.state = {
-      dataSource: ds.cloneWithRows(questions),
-      answers: {}
+      dataSource: ds,
+      answers: {},
+      questions: []
     }
     this.renderRow = this.renderRow.bind(this);
   }
@@ -40,11 +37,23 @@ class Questions extends Component{
     if(this.props.currentUser){
       this.setState({currentUser: this.props.currentUser});
     }
-    if(this.props.competenceData){
-      this.setState({
-        answers: (new Competence()).answersToView(this.props.competenceData)
-      });
-    }
+    console.log(this.props);
+    this.setQuestions();
+  }
+
+  setQuestions(){
+    let questions = this.props.questions;
+    let answers = this.props.answers;
+    let questionList = [
+      {text: 'currentUser'},
+      ...questions,
+      {text: 'saveButton'},
+    ];
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows(questionList),
+      questions: questions,
+      answers: answers,
+    })
   }
 
   loadData(){
@@ -74,6 +83,7 @@ class Questions extends Component{
   }
 
   renderSaveButton(){
+    if(this.state.currentUser) return null;
     return <TouchableHighlight underlayColor={styles._.buttonActive} onPress={() => this.saveAnswers()} style={styles._.button}>
       <Text style={styles._.buttonText}>Antworten speichern</Text>
     </TouchableHighlight>
@@ -98,29 +108,33 @@ class Questions extends Component{
     if(rowData.text == 'currentUser') {
       return this.renderUser();
     }
+    let answer = this.state.currentUser ?
+    <Text style={{fontSize:18, marginLeft:20, marginRight:20, marginBottom:10}}>{this.state.answers[rowData.text]}</Text>
+     : <TextInput
+        ref="text[]"
+        onChangeText={(text) => {this.state.answers[rowData.text] = text; this.setState({answers:this.state.answers})}}
+        value={this.state.answers[rowData.text]}
+        multiline={true}
+        numberOfLines={4}
+        returnKeyType="next"
+        style={styles.comp.questionInput}
+        maxLength={styles.max.answer}
+        autoFocus={false}
+        editable={!this.state.loading}
+        placeholder='Antwort eingeben ...'>
+      </TextInput>
+
     return <View style={styles.list.liHead}>
       <View>
         <View style={styles.list.rowContainer}>
           <View style={styles.list.textContainer}>
-            <Text style={styles.list.headText}>
+            <Text style={[styles.list.headText, {margin:5}]}>
               {rowData.text}
             </Text>
           </View>
         </View>
         <View style={styles._.row}>
-          <TextInput
-            ref="text[]"
-            onChangeText={(text) => {this.state.answers[rowData.text] = text; this.setState({answers:this.state.answers})}}
-            value={this.state.answers[rowData.text]}
-            multiline={true}
-            numberOfLines={4}
-            style={styles.comp.questionInput}
-            maxLength={styles.max.answer}
-            autoFocus={true}
-            editable={!this.state.loading}
-            onSubmitEditing={() => this.refs.tag.focus()}
-            placeholder={this.props.inputTitle}>
-          </TextInput>
+          {answer}
         </View>
         <View style={styles.list.separator} />
       </View>

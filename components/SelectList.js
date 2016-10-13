@@ -12,6 +12,7 @@ import ReactNative, {
   NavigatorIOS,
   Picker
 } from 'react-native';
+import dismissKeyboard from 'dismissKeyboard'
 
 import {
   styles,
@@ -55,7 +56,12 @@ class SelectList extends Component{
     let { elements } = this.props;
     const regex = new RegExp(filter.trim(), 'i');
     let filteredElements = elements.filter(el => {
-      return el.search(regex) >= 0
+      if(typeof(el) == 'string') {
+        el = {id:el, value:el};
+      }
+      if(!el.id) el.id = '';
+      if(!el.value) el.value = '';
+      return el.id.search(regex) >= 0 || el.value.search(regex) >= 0;
     });
     this.setState({filter:filter, dataSource:this.state.dataSource.cloneWithRows(filteredElements)});
   }
@@ -71,6 +77,7 @@ class SelectList extends Component{
 
   rowPressed(rowData){
     this.props.selected(rowData);
+    dismissKeyboard();
     this.props.navigator.pop();
   }
 
@@ -87,9 +94,6 @@ class SelectList extends Component{
     }, 1);
   }
 
-  selected(){
-
-  }
 
   renderList(){
     if(this.state.renderTheList <= 1) {
@@ -109,7 +113,7 @@ class SelectList extends Component{
 
   render(){
     return <View style={styles.wrapper}>
-      <View style={[styles._.row,{flex:0, marginTop:80, height:50}]}>
+      <View style={[styles._.row,{flex:0, marginTop:Platform.OS == 'ios' ? 80 : 0, height:50}]}>
       <TextInput
         ref="filter"
         onChangeText={(filter) => this.filterElements(filter)}

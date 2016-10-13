@@ -154,6 +154,7 @@ class Lernreflex extends Component {
               id:'goals',
               title: 'Lernziele',
               component: CompetenceList,
+              leftButtonTitle: this.state.loggedIn.username,
               rightButtonTitle: 'Hinzufügen',
               rightButtonIcon: this.state.addIcon,
               onRightButtonPress: () => this.route({
@@ -181,12 +182,13 @@ class Lernreflex extends Component {
             {this._renderNavigator({
               title: 'Badges',
               component: BadgeList,
+              leftButtonTitle: this.state.loggedIn.username,
               passProps: {
 
               }
             }, 'nav2')}
           </Icon.TabBarItemIOS>
-          <Icon.TabBarItemIOS
+          {/*<Icon.TabBarItemIOS
             iconSize={iconSize}
             iconName={Router.icons.notifications}
             badge={this.state.notifCount > 0 ? this.state.notifCount : undefined}
@@ -198,7 +200,7 @@ class Lernreflex extends Component {
               });
             }}>
             {this._renderContent('#783E33', 'Red Tab', this.state.notifCount)}
-          </Icon.TabBarItemIOS>
+          </Icon.TabBarItemIOS>*/}
           <Icon.TabBarItemIOS
             iconSize={iconSize}
             iconName={Router.icons.competences}
@@ -211,6 +213,7 @@ class Lernreflex extends Component {
             {this._renderNavigator({
               title: 'Erreicht',
               component: CompetenceList,
+              leftButtonTitle: this.state.loggedIn.username,
               rightButtonTitle: 'Hinzufügen',
               rightButtonIcon: this.state.addIcon,
               onRightButtonPress: () => this.route({
@@ -239,6 +242,7 @@ class Lernreflex extends Component {
               id: 'menu',
               title: 'Menü',
               component: Menu,
+              leftButtonTitle: this.state.loggedIn.username,
               passProps: {
                 onLogout: () => this.onLogout()
               }

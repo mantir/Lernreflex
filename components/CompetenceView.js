@@ -14,6 +14,7 @@ import {
 import {
   styles,
   Router,
+  lib,
   Loader,
   Competence,
   CompetenceCreate,
@@ -35,10 +36,10 @@ class CompetenceView extends Component{
     this.state = {
       currentAssessment:'progress',
       //currentTab: 'subcompetences',
-      questions: [],
-      answers: [],
       currentTab: 'activities',
       progress:{
+        questions: [],
+        answers: {},
         progress:0,
         time:0,
       },
@@ -75,7 +76,7 @@ class CompetenceView extends Component{
 
   loadUser(nextProps){
     let user = new User();
-    let comp = new Competence();
+    let comp = new Competence(false);
     let _this = this;
     //console.log(this.props);
     user.getCurrentUser().then((cu) => {
@@ -108,16 +109,23 @@ class CompetenceView extends Component{
   updateState(props){
     props = props ? props : this.props;
     let sliderProgress = {time:0, progress:0, value:0};
+    let answers = {};
+    let questions = [];
+    questions = lib.constants.generalCompetenceQuestions;
     if(props.competenceData.progress && Object.keys(props.competenceData.progress).length) {
       sliderProgress.progress = props.competenceData.progress.PROGRESS.assessmentIndex;
       sliderProgress.time = props.competenceData.progress.TIME.assessmentIndex;
       sliderProgress.value = sliderProgress.progress;
+      answers = (new Competence()).answersToView(props.competenceData, questions);
     }
+console.log(questions);
     this.setState({
       loading:false,
       progress: {
         progress: sliderProgress.progress,
-        time: sliderProgress.time
+        time: sliderProgress.time,
+        answers: answers,
+        questions: questions,
       },
       competenceData: props.competenceData,
       sliderValue: sliderProgress.value,
@@ -127,7 +135,7 @@ class CompetenceView extends Component{
   loadData(){
     var _this = this;
     let activity = new Activity();
-    activity.getActivities(this.props.courseId).then((d) => {
+    activity.getActivities(this.props.competence, this.props.courseId).then((d) => {
       _this.setState({
         activities: d,
         loadedActivities: true
@@ -344,7 +352,11 @@ class CompetenceView extends Component{
         //console.log(this.props.route);
         Router.route({
           id: 'questions',
-          passProps: this.props,
+          passProps: {...this.props,
+            competenceData:this.state.competenceData,
+            answers: this.state.progress.answers,
+            questions: this.state.progress.questions
+          },
           component: Questions,
           previousRoute: this.props.route
         }, this.props.navigator);
@@ -384,7 +396,7 @@ class CompetenceView extends Component{
                   Reflexionsfragen
                 </Text>
                 <Text style={styles.list.right}>
-                  {this.state.answers.length}/{this.state.questions.length}
+                  {Object.keys(this.state.progress.answers).length}/{this.state.progress.questions.length}
                 </Text>
               </View>
             </View>

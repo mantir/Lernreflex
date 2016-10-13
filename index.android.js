@@ -11,12 +11,15 @@ import {
   TouchableHighlight,
   StatusBar,
   Text,
+  UIManager,
   View,
   TouchableOpacity,
   Navigator,
   ScrollView,
   ToolbarAndroid,
-  BackAndroid
+  BackAndroid,
+  Keyboard,
+  Dimensions
 } from 'react-native';
 import TabNavigator from 'react-native-tab-navigator';
 
@@ -45,6 +48,8 @@ class Lernreflex extends Component {
       test: 4
     }
     this.systemName = Router.systemName;
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+
     this.user = new User();
     var _this = this;
     this.initialRoute = {
@@ -64,7 +69,8 @@ class Lernreflex extends Component {
       }
     };
     this.state = {
-      selectedTab: 'goals'
+      selectedTab: 'goals',
+      keyboardIn: false
     };
     this.checkedLoggedIn = false;
     this.user.isLoggedIn().done((isIn) => {
@@ -89,7 +95,14 @@ class Lernreflex extends Component {
         let iconSize = 25;
         if(route.id == 'goals')
         return (
-          <TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight} onPress={() => Router.route({id:'goal.add', component:CompetenceCreate}, navigator)} >
+          <TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight}
+            onPress={() => Router.route({
+              id:'goal.add',
+              component:CompetenceCreate,
+              passProps: {
+                afterCreation: this.afterCompetenceCreate
+              }
+            }, navigator)} >
             <Icon name="md-add" size={iconSize} color='#FFF' />
             </TouchableHighlight>
         );
@@ -115,6 +128,27 @@ class Lernreflex extends Component {
       },
 
     };
+  }
+  componentWillMount () {
+    Keyboard.addListener('keyboardDidShow', this.keyboardWillShow.bind(this))
+    Keyboard.addListener('keyboardDidHide', this.keyboardWillHide.bind(this))
+  }
+
+  keyboardWillShow (e) {
+    console.log('KEYBOARD SHOW');
+    this.setState({keyboardIn: true})
+  }
+
+  keyboardWillHide (e) {
+    console.log('KEYBOARD HIDE');
+    this.setState({keyboardIn: false})
+  }
+
+  afterCompetenceCreate(d){
+    if(this.refs.navGoal)
+      this.refs.navGoal.refs.goals.afterCompetenceCreate();
+    if(this.refs.navComp)
+      this.refs.navComp.refs.competences.afterCompetenceCreate();
   }
 
   onLogin(){
@@ -155,11 +189,12 @@ class Lernreflex extends Component {
     route.onLeftButtonPress = () => {
 
     };
+    let sceneStyle = this.state.keyboardIn ? {paddingBottom:0, marginBottom:0} : {};
     return <Navigator ref={ref}
       tintColor={styles._.navBtnColor}
       titleTextColor={styles._.navColor}
       barTintColor={styles._.navBg}
-      sceneStyle={styles._.navWrap}
+      sceneStyle={[styles._.navWrap, sceneStyle]}
       navigationBar={<Navigator.NavigationBar
         navigationStyles={Navigator.NavigationBar.StylesIOS}
         style={styles._.toolbar}
@@ -187,9 +222,15 @@ class Lernreflex extends Component {
     }
     let iconSize = 27;
     let iconColor = styles._.tabIconColor;
+    let tabBarStyle = {};
+    if(this.state.keyboardIn) {
+      tabBarStyle.height = 0;
+      tabBarStyle.overflow = 'hidden';
+      tabBarStyle.height = 0;
+      tabBarStyle.backgroundColor = '#FFF';
+    }
     return (
-      <TabNavigator
-        barTintColor="white">
+      <TabNavigator tabBarStyle={tabBarStyle} barTintColor="white">
         <TabNavigator.Item
           renderIcon={() => <Icon name={Router.icons.goals} size={iconSize} color={iconColor} />}
           renderSelectedIcon={() => <Icon name={Router.icons.goals} size={iconSize} color={styles._.secondary} />}
@@ -235,7 +276,7 @@ class Lernreflex extends Component {
             }
           }, 'nav2')}
         </TabNavigator.Item>
-        <TabNavigator.Item
+        {/*<TabNavigator.Item
           id='notifications'
           renderIcon={() => <Icon name={Router.icons.notifications} size={iconSize} color={iconColor} />}
           renderSelectedIcon={() => <Icon name={Router.icons.notifications} size={iconSize} color={styles._.secondary} />}
@@ -248,7 +289,7 @@ class Lernreflex extends Component {
             });
           }}>
           {this.state.notifCount}
-        </TabNavigator.Item>
+        </TabNavigator.Item>*/}
         <TabNavigator.Item
           id='competences'
           renderIcon={() => <Icon name={Router.icons.competences} size={iconSize} color={iconColor} />}

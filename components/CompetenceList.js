@@ -58,6 +58,7 @@ class CompetenceList extends Component{
   }
 
   afterCompetenceCreate(){
+    console.log('AfterCreate');
     this.loadData(false);
   }
 
@@ -133,8 +134,12 @@ class CompetenceList extends Component{
   }
 
   emptyList(){
+    let textCompetences = ' oder erledige ein paar Lernziele, indem du deinen Fortschritt mit 100% einschätzt oder dir ein Mitlerner Feedback zu einer erledigten Aktivität gibt';
+    let text = 'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'erreichten Lernziele.') + '\n';
+    text += 'Lege mit dem + oben eins an' + (this.props.type == 'competences' ? textCompetences : '') + '.';
+
     this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections({'empty:empty':
-      {id:'empty', text:'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'Erreichten Lernziele.') + '\n' + 'Lege mit dem + oben eins an.'}}, ['empty'], [['empty']])
+      {id:'empty', text:text}}, ['empty'], [['empty']])
     });
   }
 

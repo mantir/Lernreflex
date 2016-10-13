@@ -233,6 +233,11 @@ let lib = {
           }
         }
         return obj;
+      },
+      setKeys: (list, attribute) => {
+        let newList = {};
+        list.map((l) => newList[l[attribute]] = l);
+        return newList;
       }
     }
   };

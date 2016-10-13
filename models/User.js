@@ -35,17 +35,17 @@ class User extends Model{
     //return new Promise((resolve, reject) => resolve("true"));
     return this.clearStorage()
     .then(() => this.get('users/'+user+'/systems', {password:password, nocache:true}).then((d) => {
+      console.log(d);
       if(d && d.data && d.data.length) {
         d = lib.functions.swapKeyVal(d.data);
-        //console.log(d);
         if(!d.moodle) return false;
-        if(!d.db) return this.save({
+        /*if(!d.db) return this.save({
           userId: user,
           courseContext: 'university',
           role: 'student',
           printableName: user,
           lmsSystems: 'db'
-        }).then(() => d);
+        }).then(() => d);*/
         return true;
       }
       return false;
@@ -58,7 +58,16 @@ class User extends Model{
         username: username,
         password: password
       };
-      return this.setItem('auth', user);
+      let sync = {
+        userName: username,
+        password: password,
+        syncUsers: true,
+        syncCourses: true,
+        syncBadges: false,
+        syncActivities: false,
+      };
+      return this.post('users/sync/moodle', sync)
+        .then(() => this.setItem('auth', user));
     }
     return Promise.resolve();
   }
@@ -74,7 +83,7 @@ class User extends Model{
   getUsers(courseId){
     let _this = this;
     return this.isLoggedIn().then((u) => _this.get('users', {userName:u.username, password:u.password})).then((d) => {
-      return d.map((user) => {
+      let users = d.map((user) => {
         let u = {};
         u.username = user.printableName ? user.printableName : user.userId; //From moodle: userId is a number, printableName is the username
         u.name = u.username;
@@ -82,7 +91,12 @@ class User extends Model{
         u.courseContext = user.courseContext;
         u.fromSystem = user.lmsSystems;
         return u;
-      }).filter((u) => u.courseContext+'' == courseId+'');
+      });
+      return users.filter((u) => {
+        return u.courseContext+'' == courseId+'' && users.filter((us) => {
+          return us.fromSystem == 'db' && us.username == u.username;
+        }).length > 0;
+      });
     });
   }
 

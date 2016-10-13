@@ -215,14 +215,15 @@ var competence = StyleSheet.create({
   },
   questionInput:{
     flex:1,
-    margin: ios ? 10 : 0,
+    margin: ios ? 5 : 0,
     fontSize: 18,
     height: 100,
-    borderWidth:1,
-    borderRadius: 5,
+    borderWidth:0,
+    borderRadius: 0,
     borderColor:'#CCC',
+    color:'#FFF',
     padding:10,
-    backgroundColor:'#FFF'
+    //backgroundColor:'none'
   },
   titleInput:{
     margin: ios ? 10 : 0,

@@ -12,7 +12,7 @@ import ReactNative, {
   NavigatorIOS,
   Picker
 } from 'react-native';
-import Autocomplete from 'react-native-autocomplete-input';
+import KeyboardSpacer from 'react-native-keyboard-spacer';
 
 
 import {
@@ -35,7 +35,6 @@ class CompetenceCreate extends Component{
       verb:'',
       catchwords:[],
       group:'',
-      categories: ['Hallo', 'Oder']
 
     };
   }
@@ -46,16 +45,30 @@ class CompetenceCreate extends Component{
     var learningTemplate = new LearningTemplate();
     var superCompetences = this.props.superCompetence ? [this.props.superCompetence] : [];
     //console.log(this.state.title);
-    this.setState({loading:true});
     var _this = this;
+    let verb2 = '';
+    let verb = this.state.verb.split(' ... ');
+    if(verb[1]) {
+      verb2 = verb[1];
+    }
+    verb = verb[0];
+    let r = {'Tätigkeit': verb, 'Lernziel':this.state.title, 'Tags':this.state.catchwords.length > 0, 'Kategorie':this.state.group};
+    let empty = Object.keys(r).filter((k) => !r[k]);
+    if(empty.length) {
+      Alert.alert('Fehlende Infos.', 'Folgende Felder müssen noch ausgefüllt werden: ' + empty.join(', '), [
+        {text: 'Ok, mach ich.'},
+      ]);
+      return;
+    }
+    this.setState({loading:true});
     user.isLoggedIn().done((u) => {
       learningTemplate.save({
         userName: u.username,
-        groupId: 'randomString',
+        groupId: learningTemplate.courseContext,
         selectedTemplate: this.state.group
       })
       .then(() => competence.save({
-        forCompetence: 'Ich '+this.state.verb+' '+this.state.title,
+        forCompetence: ('Ich '+verb+' '+this.state.title+' '+verb2).trim(),
         operator: this.state.verb,
         catchwords: this.state.catchwords,
         isGoal: this.props.type === 'goals',
@@ -71,8 +84,8 @@ class CompetenceCreate extends Component{
         }
       }, (error) => {
         //Errorhandler
-        Alert.alert('Erstellen fehlgeschlagen', 'Hier steht bald der Fehler.', [
-          {text: 'Ok'},
+        Alert.alert('Erstellen fehlgeschlagen', 'Das Lernziel konnte nicht gespeichert werden.', [
+          {text: 'Ok, schade'},
         ]);
         _this.setState({loading:false});
       });
@@ -84,7 +97,16 @@ class CompetenceCreate extends Component{
   }
 
   componentDidMount(){
+    this.unmounting = false;
+  }
 
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  setState(obj){
+    if(this.unmounting) return;
+    super.setState(obj);
   }
 
   removeTag(i){
@@ -93,6 +115,7 @@ class CompetenceCreate extends Component{
   }
 
   addTag(blurred){
+    console.log('blurred');
     var tag = this.state.tag;
     if(!tag || !tag.trim() || this.managedTag)
     return;
@@ -124,15 +147,6 @@ class CompetenceCreate extends Component{
       {rows}
     </ScrollView>
   </View>
-}
-
-_findGroup(query){
-  if (query === '') {
-    return [];
-  }
-  const { categories } = this.state;
-  const regex = new RegExp(`${query.trim()}`, 'i');
-  return categories.filter(group => group.search(regex) >= 0);
 }
 
 _renderButton(){
@@ -174,7 +188,6 @@ _scrollToBottom(refName) {
 selectPressed(){
   if(this.refs.title)
   this.refs.title.blur();
-  this.setState({justSelected:false});
   Router.route({
     id:'select',
     component: SelectList,
@@ -185,7 +198,7 @@ selectPressed(){
       selected: ((el) => {
         if(this.refs.title)
           this.refs.title.focus();
-        this.setState({verb:el, justSelected:true})
+        this.setState({verb:el})
       })
     }
   }, this.props.navigator)
@@ -200,12 +213,10 @@ render(){
   if(verb[1]) {
     verb2 = verb[1];
   }
-  console.log(verb2);
+  let ThisScrollView = Platform.OS == 'ios' ? InputScrollView : ScrollView;
   verb = verb[0];
-  const categories = this._findGroup(group);
-  const comp = (s, s2) => s.toLowerCase().trim() === s2.toLowerCase().trim();
   return <View style={styles.wrapper}>
-    <InputScrollView keyboardDismissMode="interactive" ref="scroller">
+    <ThisScrollView keyboardDismissMode="interactive" ref="scroller">
       {this._renderSuperCompetence()}
       <View style={[styles._.row, {marginTop:10}]}>
         <Text style={[styles._.col, {flex:0.1, fontSize:20, paddingLeft:10}]}>Ich</Text>
@@ -222,19 +233,18 @@ render(){
         </TouchableHighlight>
       </View>
       {(() => {
-        if(this.state.verb) return <View><View style={styles._.row}>
+        if(true || this.state.verb) return <View><View style={styles._.row}>
           <TextInput
             ref="title"
             autoCapitalize='none'
             onChangeText={(title) => this.setState({title})}
             value={this.state.title}
             multiline={true}
+            returnKeyType='next'
             numberOfLines={4}
             style={[styles.comp.titleInput, {borderWidth:0, borderTopLeftRadius:0,borderTopRightRadius:0}]}
             maxLength={styles.max.competenceTitle}
-            autoFocus={this.state.justSelected ? true : false}
             editable={!this.state.loading}
-            onSubmitEditing={() => this.refs.tag.focus()}
             placeholder={this.props.inputTitle}>
           </TextInput>
         </View>
@@ -251,7 +261,7 @@ render(){
             ref="tag"
             onChangeText={(tag) => this.setState({tag})}
             onSubmitEditing={(event) => this.addTag()}
-            onBlur={(event) => this.addTag(true)}
+
             value={this.state.tag}
             multiline={false}
             editable={!this.state.loading}
@@ -272,7 +282,6 @@ render(){
             onFocus={() => this._scrollToBottom('group')}
             editable={!this.state.loading}
             style={styles.comp.input}
-            data={categories}
             defaultValue={group}
             maxLength={styles.max.competenceGroup}
             renderItem={({title}) => (
@@ -290,7 +299,8 @@ render(){
         </View>
       </View>
       })()}
-    </InputScrollView>
+    </ThisScrollView>
+  {/*  <KeyboardSpacer onToggle={(state) => console.log('TOGGLED', state)} />*/}
   </View>
 }
 }

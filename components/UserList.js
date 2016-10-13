@@ -109,6 +109,7 @@ class UserList extends Component{
     return <View style={styles.wrapper}>
       <ListView
         style={styles._.list}
+        enableEmptySections={true}
         dataSource={this.state.dataSource}
         renderRow={this.renderRow}>
       </ListView>

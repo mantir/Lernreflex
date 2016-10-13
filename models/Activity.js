@@ -10,25 +10,26 @@ class Activity extends Model{
       activities: ''
     };
     this.evidenceParamName = 'user'; //Is added to an activity-URL to get user specific evidence
+    this.definition = {
+      name: '*',
+      url: '*',
+      icon: '*',
+      qtip: '*'
+    }
     this.setApi(1);
   }
 
   save(obj){
-    var key = obj.isGoal ? 'goals' : 'activities';
-    obj.operator = 'operator';
+    obj.icon = '-';
+    obj.qtip = '-';
     obj = this.checkDefinition(obj);
     if(obj){
-      let id = this.generateID(obj);
-      //return this.put('activities/'+(id), obj).then(this.log);
-      console.log(this.lastRequest);
-      return this.getItem(key, {})
-      .then((comps) => {comps[id] = obj; return comps;})
-      .then((comps) => super.save(key, comps));
+      return this.put('activities', obj);
     }
   }
 
   commentsToView(competenceProgress, activity){
-    //console.log(competenceProgress, activity);
+    console.log(competenceProgress, activity);
     let comments = [];
     if(competenceProgress && Array.isArray(competenceProgress.evidences)) {
       for(var i in competenceProgress.evidences){
@@ -79,14 +80,26 @@ addUsernameToUrl(url, username){
   return url+symbol+this.evidenceParamName+'='+username;
 }
 
-getActivities(courseId){
+getActivities(competence){
+  let user = new User();
+  let _this = this;
+  return user.isLoggedIn().then((u) => {
+    return _this.get('activities/competences/'+competence).then((activities) => {
+      console.log('Activities:', activities, competence);
+      activities = activities.map((a) => {a.type = 'activity'; a.activityData = {...a}; return a;});
+      return activities;
+    });
+  });
+}
+
+getCourseActivities(courseId){
   let user = new User();
   let _this = this;
   return user.isLoggedIn().then((u) => {
     return _this.get('courses/'+courseId+'/activities', {userId:u.username, password:u.password}).then((d) => {
       let activities = [];
       let already = {};
-      //console.log(d);
+      console.log(d);
       if(d && d.length) {
         for(var i in d) {
           if(d[i] && d[i].activityTypes && d[i].activityTypes.length) {
@@ -105,14 +118,14 @@ getActivities(courseId){
           }
         }
       }
-      console.log('Activities:',activities);
+      console.log('Activities:', activities);
       return activities;
     });
   });
 }
 
 generateID(obj){
-  return obj.forActivity;
+  return obj.url;
 }
 
 
