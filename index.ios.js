@@ -42,6 +42,7 @@ class Lernreflex extends Component {
       _this.setState({loggedIn: isIn, checkedLoggedIn:true});
     });
     this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
+    this.updateBadge = this.updateBadge.bind(this);
     //this.test();
   }
 
@@ -50,23 +51,26 @@ class Lernreflex extends Component {
       return <Test />;
     };
     /*this.render = () => {
-      return <UITest />;
+    return <UITest />;
     };
-  */}
+    */}
 
-  onLogin(){
-    this.setState({loggedIn: true});
-  }
+    onLogin(){
+      this.user.isLoggedIn().done((isIn) => {
+        this.setState({loggedIn: isIn});
+      });
+    }
 
-  onLogout(){
-    this.setState({loggedIn: false});
-  }
+    onLogout(){
+      this.selectTab('goals');
+      this.setState({loggedIn: false});
+    }
 
-  renderScene(route, navigator){
-    return <View>
-      {Router.renderRoute(route, navigator)}
-    </View>
-  }
+    renderScene(route, navigator){
+      return <View>
+        {Router.renderRoute(route, navigator)}
+      </View>
+    }
 
     route(route, navigator){
       Router.route(route, navigator);
@@ -78,20 +82,22 @@ class Lernreflex extends Component {
         ['md-add']
       ];
       //Icon.getImageSource('md-menu', 30)
-        //.then((source) => this.setState({ hamburgerIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
+      //.then((source) => this.setState({ hamburgerIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
       Icon.getImageSource('md-add', 30)
-        .then((source) => this.setState({ addIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
+      .then((source) => this.setState({ addIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
 
+    }
+
+    updateBadge(n, ref){
+      let o = {};
+      o[ref+'Badge'] = n;
+      this.setState(o);
     }
 
     _renderNavigator(route, ref){
       if(this.state.iconsLoaded < 1) { //Erst wenn das Icon geladen ist anzeigen
         return false;
       }
-      route.leftButtonIcon = this.state.hamburgerIcon;
-      route.onLeftButtonPress = () => {
-
-      };
       return <NavigatorIOS ref={ref}
         tintColor={styles._.navBtnColor}
         titleTextColor={styles._.navColor}
@@ -103,20 +109,20 @@ class Lernreflex extends Component {
       </NavigatorIOS>
     }
 
-    _renderContent(color, pageText, num) {
-      return (
-        <View style={[styles.tabContent, {backgroundColor: color}]}>
-          <Text style={styles.tabText}>{pageText}</Text>
-          <Text style={styles.tabText}>{num} re-renders of the {pageText}</Text>
-        </View>
-      );
+    afterCompetenceCreate(){
+      if(this.refs.navGoal)
+      this.refs.navGoal.refs.goals.afterCompetenceCreate();
+      if(this.refs.navComp)
+      this.refs.navComp.refs.competences.afterCompetenceCreate();
     }
 
-    afterCompetenceCreate(d){
-      if(this.refs.navGoal)
-        this.refs.navGoal.refs.goals.afterCompetenceCreate();
-      if(this.refs.navComp)
-        this.refs.navComp.refs.competences.afterCompetenceCreate();
+    selectTab(tab, navigatorRef){
+      if(this.state.selectedTab == tab) {
+        this.refs[navigatorRef].popToTop();
+      }
+      this.setState({
+        selectedTab: tab,
+      });
     }
 
     render() {
@@ -146,47 +152,44 @@ class Lernreflex extends Component {
             iconName={Router.icons.goals}
             selected={this.state.selectedTab === 'goals'}
             onPress={() => {
-              this.setState({
-                selectedTab: 'goals',
-              });
+              this.selectTab('goals', 'navGoal');
             }}>
             {this._renderNavigator({
               id:'goals',
               title: 'Lernziele',
               component: CompetenceList,
               leftButtonTitle: this.state.loggedIn.username,
-              rightButtonTitle: 'Hinzufügen',
               rightButtonIcon: this.state.addIcon,
               onRightButtonPress: () => this.route({
                 id:'goal.add',
                 component: CompetenceCreate,
                 passProps: {
-                  afterCreation: this.afterCompetenceCreate
+                  afterCompetenceCreate: () => this.afterCompetenceCreate(),
                 }
               }, this.refs.navGoal.navigator),
               passProps: {
                 ref: 'goals',
-                type:'goals'
+                type:'goals',
+                updateBadge: (n, ref) => this.updateBadge(n, ref)
               }
             }, 'navGoal')}
           </Icon.TabBarItemIOS>
           <Icon.TabBarItemIOS
             iconSize={iconSize}
             iconName={Router.icons.badges}
+            badge={this.state.badgesBadge > 0 ? this.state.badgesBadge : undefined}
             selected={this.state.selectedTab === 'badges'}
             onPress={() => {
-              this.setState({
-                selectedTab: 'badges',
-              });
+              this.selectTab('badges', 'navBadge');
             }}>
             {this._renderNavigator({
-              title: 'Badges',
+              title: 'Abzeichen',
               component: BadgeList,
               leftButtonTitle: this.state.loggedIn.username,
               passProps: {
-
+                updateBadge: (n, ref) => this.updateBadge(n, ref)
               }
-            }, 'nav2')}
+            }, 'navBadge')}
           </Icon.TabBarItemIOS>
           {/*<Icon.TabBarItemIOS
             iconSize={iconSize}
@@ -194,63 +197,60 @@ class Lernreflex extends Component {
             badge={this.state.notifCount > 0 ? this.state.notifCount : undefined}
             selected={this.state.selectedTab === 'redTab'}
             onPress={() => {
-              this.setState({
-                selectedTab: 'redTab',
-                notifCount: this.state.notifCount + 1,
-              });
+            this.setState({
+            selectedTab: 'redTab',
+            notifCount: this.state.notifCount + 1,
+            });
             }}>
             {this._renderContent('#783E33', 'Red Tab', this.state.notifCount)}
-          </Icon.TabBarItemIOS>*/}
-          <Icon.TabBarItemIOS
-            iconSize={iconSize}
-            iconName={Router.icons.competences}
-            selected={this.state.selectedTab === 'competences'}
-            onPress={() => {
-              this.setState({
-                selectedTab: 'competences',
-              });
-            }}>
-            {this._renderNavigator({
-              title: 'Erreicht',
-              component: CompetenceList,
-              leftButtonTitle: this.state.loggedIn.username,
-              rightButtonTitle: 'Hinzufügen',
-              rightButtonIcon: this.state.addIcon,
-              onRightButtonPress: () => this.route({
+            </Icon.TabBarItemIOS>*/}
+            <Icon.TabBarItemIOS
+              iconSize={iconSize}
+              iconName={Router.icons.competences}
+              selected={this.state.selectedTab === 'competences'}
+              badge={this.state.competencesBadge > 0 ? this.state.competencesBadge : undefined}
+              onPress={() => {
+                this.selectTab('competences', 'navComp');
+              }}>
+              {this._renderNavigator({
+                title: 'Erreicht',
+                component: CompetenceList,
+                leftButtonTitle: this.state.loggedIn.username,
+                /*rightButtonIcon: this.state.addIcon,
+                onRightButtonPress: () => this.route({
                 id:'competence.add',
                 component: CompetenceCreate,
                 passProps: {
-                  afterCreation: this.afterCompetenceCreate
+                afterCreation: this.afterCompetenceCreate
                 }
-              }, this.refs.navComp.navigator),
-              passProps: {
-                ref: 'competences',
-                type: 'competences'
-              }
-            }, 'navComp')}
-          </Icon.TabBarItemIOS>
-          <Icon.TabBarItemIOS
-            iconName={Router.icons.menu}
-            iconSize={iconSize}
-            selected={this.state.selectedTab === 'menu'}
-            onPress={() => {
-              this.setState({
-                selectedTab: 'menu',
-              });
-            }}>
-            {this._renderNavigator({
-              id: 'menu',
-              title: 'Menü',
-              component: Menu,
-              leftButtonTitle: this.state.loggedIn.username,
-              passProps: {
-                onLogout: () => this.onLogout()
-              }
-            }, 'navMenu')}
-          </Icon.TabBarItemIOS>
-        </TabBarIOS>
-      );
+                }, this.refs.navComp.navigator),*/
+                passProps: {
+                  ref: 'competences',
+                  type: 'competences',
+                  updateBadge: (n, ref) => this.updateBadge(n, ref)
+                }
+              }, 'navComp')}
+            </Icon.TabBarItemIOS>
+            <Icon.TabBarItemIOS
+              iconName={Router.icons.menu}
+              iconSize={iconSize}
+              selected={this.state.selectedTab === 'menu'}
+              onPress={() => {
+                this.selectTab('menu', 'navMenu');
+              }}>
+              {this._renderNavigator({
+                id: 'menu',
+                title: 'Menü',
+                component: Menu,
+                leftButtonTitle: this.state.loggedIn.username,
+                passProps: {
+                  onLogout: () => this.onLogout()
+                }
+              }, 'navMenu')}
+            </Icon.TabBarItemIOS>
+          </TabBarIOS>
+        );
+      }
     }
-}
 
-AppRegistry.registerComponent('Lernreflex', () => Lernreflex);
+    AppRegistry.registerComponent('Lernreflex', () => Lernreflex);

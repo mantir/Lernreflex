@@ -7,7 +7,9 @@ import React, {
 var OS = Platform.OS;
 var ios = OS == 'ios';
 var primaryBG = '#3E6E7F';
-var brighterPrimary = '#6cb9d4';
+//var brighterPrimary = '#6cb9d4';
+var brighterPrimary = '#67D8D4';
+var primaryDarker = '#0E3E4F';
 var secondary = '#EC7426';
 var secondaryDark = '#ac5720';
 var secondaryBright = '#f59150';
@@ -96,9 +98,11 @@ var general = StyleSheet.create({
     fontSize: 20
   },
   toolbarRight:{
-    marginTop:-23,
+    marginTop:0,
     marginRight:0,
-    padding: 20
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop:0
   },
   icon: {
     width: 20,
@@ -138,12 +142,16 @@ var general = StyleSheet.create({
 });
 general.primary = primaryBG;
 general.primaryBrighter = brighterPrimary;
+general.primaryDarker = primaryDarker;
 general.secondary = secondary;
+general.secondaryBrighter = secondaryBright;
 general.navBg = primaryBG;
 general.navColor = '#FFF';
 general.navBtnColor = '#FFF';
 general.hoverBtn = secondaryBright;
 general.tabIconColor = tabIconColor;
+general.bg = '#FFF';
+general.text = '#000';
 
 var list = StyleSheet.create({
 
@@ -162,7 +170,7 @@ var list = StyleSheet.create({
     backgroundColor: '#67B8D4',
   },
   liHead2:{
-    backgroundColor: '#67D8D4',
+    backgroundColor: brighterPrimary,
   },
   right:{
     color: gray,
@@ -215,14 +223,20 @@ var competence = StyleSheet.create({
   },
   questionInput:{
     flex:1,
-    margin: ios ? 5 : 0,
-    fontSize: 18,
-    height: 100,
+    marginLeft: ios ? 0 : 0,
+    marginRight: ios ? 0 : 0,
+    marginTop: 0,
+    marginBottom:0,
+    fontSize: 15,
+    height: 60,
+    justifyContent:'flex-start',
     borderWidth:0,
     borderRadius: 0,
     borderColor:'#CCC',
-    color:'#FFF',
-    padding:10,
+    color:brighterPrimary,
+    paddingTop:0,
+    paddingLeft:5,
+    paddingRight:5
     //backgroundColor:'none'
   },
   titleInput:{

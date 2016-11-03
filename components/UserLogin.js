@@ -54,7 +54,16 @@ class UserLogin extends Component{
   }
 
   componentDidMount(){
+    this.unmounting = false;
+  }
 
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  setState(obj){
+    if(this.unmounting) return;
+    super.setState(obj);
   }
 
   _renderLoginButton(){

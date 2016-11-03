@@ -61,6 +61,7 @@ class CompetenceCreate extends Component{
       return;
     }
     this.setState({loading:true});
+    let competenceTitle = ('Ich '+verb+' '+this.state.title+' '+verb2).trim();
     user.isLoggedIn().done((u) => {
       learningTemplate.save({
         userName: u.username,
@@ -68,7 +69,7 @@ class CompetenceCreate extends Component{
         selectedTemplate: this.state.group
       })
       .then(() => competence.save({
-        forCompetence: ('Ich '+verb+' '+this.state.title+' '+verb2).trim(),
+        forCompetence: competenceTitle,
         operator: this.state.verb,
         catchwords: this.state.catchwords,
         isGoal: this.props.type === 'goals',
@@ -77,11 +78,14 @@ class CompetenceCreate extends Component{
         learningProjectName: this.state.group
       }))
       .done(() => {
-        this.props.navigator.pop();
-        //console.log(this.props.afterCreation);
-        if(this.props.afterCreation) {
-          this.props.afterCreation(this.state.title);
-        }
+        this.saveQuestions(competenceTitle);
+        let competence = new Competence();
+        competence.setItem('reloadGoals', true).then(() => {
+          this.props.navigator.pop();
+        })
+        /*if(this.props.afterCompetenceCreate) {
+          this.props.afterCompetenceCreate();
+        }*/
       }, (error) => {
         //Errorhandler
         Alert.alert('Erstellen fehlgeschlagen', 'Das Lernziel konnte nicht gespeichert werden.', [
@@ -92,11 +96,27 @@ class CompetenceCreate extends Component{
     });
   }
 
+  saveQuestions(competenceId){
+    let u = new User();
+    let questions = lib.constants.generalCompetenceQuestions;
+    for(var i in questions){
+      let q = {
+        question: questions[i].text,
+        competenceId: competenceId
+      };
+      u.post('competences/questions', q).then((d) => {
+        console.log(d);
+      });
+    }
+  }
+
   createCourse(){
 
   }
 
   componentDidMount(){
+    console.log(this.props.afterCompetenceCreate);
+
     this.unmounting = false;
   }
 
@@ -216,7 +236,7 @@ render(){
   let ThisScrollView = Platform.OS == 'ios' ? InputScrollView : ScrollView;
   verb = verb[0];
   return <View style={styles.wrapper}>
-    <ThisScrollView keyboardDismissMode="interactive" ref="scroller">
+    <ThisScrollView keyboardDismissMode="interactive" keyboardShouldPersistTaps={true} ref="scroller">
       {this._renderSuperCompetence()}
       <View style={[styles._.row, {marginTop:10}]}>
         <Text style={[styles._.col, {flex:0.1, fontSize:20, paddingLeft:10}]}>Ich</Text>
@@ -233,7 +253,7 @@ render(){
         </TouchableHighlight>
       </View>
       {(() => {
-        if(true || this.state.verb) return <View><View style={styles._.row}>
+        if(this.state.verb) return <View><View style={styles._.row}>
           <TextInput
             ref="title"
             autoCapitalize='none'
@@ -261,7 +281,7 @@ render(){
             ref="tag"
             onChangeText={(tag) => this.setState({tag})}
             onSubmitEditing={(event) => this.addTag()}
-
+            onBlur={() => this.addTag(true)}
             value={this.state.tag}
             multiline={false}
             editable={!this.state.loading}

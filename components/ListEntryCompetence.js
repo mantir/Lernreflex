@@ -9,6 +9,7 @@ import {
   TouchableHighlight,
   ListView,
   Platform,
+  Image,
   Text,
   View,
 } from 'react-native';
@@ -33,6 +34,31 @@ class ListEntryCompetence extends Component{
     </View>
   }
 
+  _badge(rowData){
+    return <View>
+      <View style={styles.list.rowContainer}>
+        <Image
+          style={{height:50, width:50}}
+          resizeMode='contain'
+          source={{uri:rowData.png}}
+          />
+        <View style={styles.list.textContainer}>
+          <Text style={styles.list.text}>
+            {rowData.name}
+          </Text>
+          <Text style={styles.list.right}>
+            {rowData.done ? <Image
+              style={styles._.icon}
+              resizeMode='cover'
+              source={require('Lernreflex/img/checked.png')}
+              /> : ''}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.list.separator} />
+      </View>
+  }
+
   _comment(rowData){
     let date = new Date(rowData.created);
     return <View>
@@ -55,7 +81,7 @@ class ListEntryCompetence extends Component{
       <View style={styles.list.rowContainer}>
         <View style={styles.list.textContainer}>
           <Text style={styles.list.text}>
-            {this.props.rowData.competence}
+            {this.props.rowData.text}
           </Text>
           <Text style={styles.list.right}>
             {this.props.rowData.percent}%
@@ -73,8 +99,8 @@ class ListEntryCompetence extends Component{
           <Text style={styles.list.text}>
             {rowData.name}
           </Text>
-          <Text style={styles.list.right}>
-            {rowData.percent}
+          <Text style={styles.list.right, {justifyContent:'center'}}>
+            {rowData.done ? <Image style={{width: 20, height: 20, justifyContent:'center', alignSelf:'center'}} resizeMode='contain' source={require('Lernreflex/img/checked.png')}></Image> : ''}
           </Text>
         </View>
       </View>

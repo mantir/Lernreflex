@@ -18,6 +18,12 @@ class Model {
     }
     if(this.ip.indexOf('fleckenroller') > -1) {
       this.host = this.protocol + this.ip + '/';
+    } else if(this.ip.indexOf('erdmaennchen') > -1) {
+      this.protocol = 'https://';
+      this.host = this.protocol + this.ip + '/';
+    } else
+    if(this.ip.indexOf('competence-base') > -1) {
+      this.host = this.protocol + this.ip + '/';
     } else {
       this.host = this.protocol + this.ip+':8084/';
     }
@@ -219,10 +225,6 @@ class Model {
   log(d){
     console.log(d);
     return d;
-  }
-
-  clearCache(){
-
   }
 
   isLoggedIn(){

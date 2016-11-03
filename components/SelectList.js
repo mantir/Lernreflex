@@ -114,12 +114,13 @@ class SelectList extends Component{
   render(){
     return <View style={styles.wrapper}>
       <View style={[styles._.row,{flex:0, marginTop:Platform.OS == 'ios' ? 80 : 0, height:50}]}>
+      {/*onSubmitEditing={(event) => this.selected()}*/}
       <TextInput
         ref="filter"
         onChangeText={(filter) => this.filterElements(filter)}
-        onSubmitEditing={(event) => this.selected()}
         value={this.state.filter}
         autoCapitalize='none'
+        autoCorrect={false}
         multiline={false}
         autoFocus={true}
         editable={!this.state.loading}

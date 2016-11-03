@@ -58,11 +58,18 @@ class CompetenceList extends Component{
   }
 
   afterCompetenceCreate(){
-    console.log('AfterCreate');
     this.loadData(false);
   }
 
   componentWillReceiveProps(){
+    let competence = new Competence();
+    let type = this.props.type == 'competences' ? 'reloadCompetences' : 'reloadGoals';
+    competence.getItem(type, false).then((value) => {
+      if(value) {
+        this.loadData(false);
+        competence.setItem(type, false);
+      }
+    })
     console.log('CompetenceList componentWillReceiveProps');
   }
 
@@ -116,7 +123,7 @@ class CompetenceList extends Component{
       if(!dataBlob[k]){
         sectionIDs.push(k);
         dataBlob[k] = {title:k, index:rowIDs.length, type:comps[k][0].inCourse ? 'course' : 'learningTemplate'};
-        console.log(comps[k]);
+        //console.log(comps[k]);
         rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
       }
 
@@ -124,7 +131,7 @@ class CompetenceList extends Component{
         dataBlob[k + ':' + comp.name] = comp;
       });
     });
-    console.log(dataBlob, sectionIDs, rowIDs);
+    //console.log(dataBlob, sectionIDs, rowIDs);
     return {dataBlob, sectionIDs, rowIDs};
   }
 
@@ -134,25 +141,50 @@ class CompetenceList extends Component{
   }
 
   emptyList(){
-    let textCompetences = ' oder erledige ein paar Lernziele, indem du deinen Fortschritt mit 100% einschätzt oder dir ein Mitlerner Feedback zu einer erledigten Aktivität gibt';
+    let textCompetences = 'Erledige ein paar Lernziele, indem du in einem eigenen Lernziel deinen Fortschritt mit 100% einschätzt oder indem dir ein Mitlerner Feedback zu einer erledigten Aktivität in einem Lernziel eines Kurses gibt.';
     let text = 'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'erreichten Lernziele.') + '\n';
-    text += 'Lege mit dem + oben eins an' + (this.props.type == 'competences' ? textCompetences : '') + '.';
+    if(this.props.type == 'competences') text += textCompetences+' ';
+    text += 'Du kannst diese Ansicht aktualisieren, indem du sie nach unten ziehst.'
+    if(this.props.type == 'goals') text += ' Lege mit dem + oben eins an' + '.';
 
-    this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections({'empty:empty':
-      {id:'empty', text:text}}, ['empty'], [['empty']])
+    this.setState({
+      dataSource:this.state.dataSource.cloneWithRowsAndSections({'empty:empty': {id:'empty', text:text}}, ['empty'], [['empty']]),
+      loaded: true, refreshing: false
     });
   }
 
   loadData(caching = true){
+    console.log(this.props);
+
     var _this = this;
     var competence = new Competence(caching);
-    console.log('loading');
     //alert(this.props.type);
     //competence.getAllKeys().done((keys) => console.log(keys));
     //competence.removeLocal('goals');
     this.setState({refreshing:true});
     var type = this.props.type;
-    if(type === 'goals') {
+    let getCompetences = type === 'goals' ? competence.getGoals.bind(competence) : competence.getCompetences.bind(competence);
+    getCompetences().done((competences) => {
+      console.log(competences);
+      if(Object.keys(competences).length){
+        _this.setState({
+          dataSource: _this.getDatasource(competences),
+          loaded: true,
+          refreshing: false,
+          competences: competences
+        });
+      } else this.emptyList();
+      if(competence.newGoalsReached) {
+        console.log('NEW GOAL Reached');
+        _this.props.updateBadge(competence.newGoalsReached, 'competences');
+      }
+      if(_this.props.type == 'competences')
+        _this.props.updateBadge(0, 'competences');
+      if(_this.props.type == 'competences')
+       competence.setItem('reloadGoals', true);
+      else competence.setItem('reloadCompetences', true);
+    });
+  /*  if(type === 'goals') {
       competence.getGoals().done((goals) => {
         console.log(goals);
         if(Object.keys(goals).length){
@@ -176,7 +208,7 @@ class CompetenceList extends Component{
           });
         } else this.emptyList();
       });
-    }
+    }*/
   }
 
   rowPressed(rowData) {
@@ -217,12 +249,10 @@ class CompetenceList extends Component{
   }
 
   getSectionData(dataBlob, sectionID){
-    //console.log(dataBlob[sectionID], sectionID);
     return dataBlob[sectionID];
   }
 
   getRowData(dataBlob, sectionID, rowID){
-    //console.log(dataBlob[sectionID + ':' + rowID], sectionID + ':' + rowID);
     return dataBlob[sectionID + ':' + rowID];
   }
 

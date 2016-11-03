@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "$1"
-if [ -z $1 ];
+if [ -z $1 ] || [ "$1" == "." ];
 then
   ip=$(ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}')
 else
@@ -11,20 +11,55 @@ then
   ip=$(ifconfig en1 | grep inet | grep -v inet6 | awk '{print $2}')
 fi
 echo $ip
+stop="0"
+
+if [ "$2" == "show" ];
+then
+exit
+fi
 
 if ! [ -z $ip ];
 then
+if [ "$1" == "fleckenroller" ];
+then
+  ip="fleckenroller.cs.uni-potsdam.de/app/competence-base"
+  stop="1"
+fi
+
+if [ "$1" == "prod" ];
+then
+  ip="fleckenroller.cs.uni-potsdam.de/app/competence-base-prod"
+  stop="1"
+fi
+
+if [ "$1" == "erdmann" ];
+then
+  ip="erdmaennchen.soft.cs.uni-potsdam.de:8443/competence-base"
+  stop="1"
+fi
+
+if [ -z $2 ];
+then
+echo 'Setting localip.js'$2
 echo "var ip='"$ip"';" > localip.js
 echo "module.exports = {ip:ip};" >> localip.js
+fi
 
+if [ $stop == "1" ];
+then
+exit
+fi
+echo 'Setting iOS Project'
 #Change IP in iOS project
 url="//.*:8081/index.ios.bundle"
 sed -i -- "s|$url|//$ip:8081/index.ios.bundle|g" ios/Lernreflex/AppDelegate.m
 
+echo 'Setting iOS Debugger'
 #Change IP in iOS debugger
-url="//.*:%zd/debugger-proxy?role=client"
-sed -i -- "s|$url|//$ip:%zd/debugger-proxy?role=client|g" node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.m
+sed -i -- "s|host = @\".*\"|host = @\"$ip\"|g" node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.m
+# ALT sed -i -- "s|$url|//$ip:%zd/debugger-proxy?role=client|g" node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.m
 
+echo 'Setting COMPBASE'
 #Change IP in COMPBASE
 sed -i -- "s/RESTURLCompetence.*/RESTURLCompetence = \"http:\/\/$ip:8084\";/g" /Users/ast/Projects/COMPBASE/util/src/main/java/config/MagicStrings.java
 fi

@@ -7,12 +7,12 @@ import {
   Text,
   View,
   NavigatorIOS,
+  RefreshControl,
   ToolbarAndroid,
   Image
 } from 'react-native';
 //import BadgeView from 'Lernreflex/components/BadgeView';
-import Badge from 'Lernreflex/models/Badge';
-import styles from 'Lernreflex/styles';
+import {styles, Badge, ListEntryCompetence} from 'Lernreflex/imports';
 import Router from 'Lernreflex/Router';
 
 
@@ -26,6 +26,7 @@ class BadgeList extends Component{
       sectionHeaderHasChanged : (s1, s2) => s1 !== s2
     });
     this.state = {
+      refreshing: false,
       dataSource: ds,
       loaded: false
     };
@@ -38,35 +39,51 @@ class BadgeList extends Component{
 
   componentDidMount(){
     this.unmounting = false;
+    this.setState({dataSource:this.state.dataSource.cloneWithRows(['loader'])});
+    this.loadData();
+  }
+
+  loadData(caching = false){
     var _this = this;
-    var badge = new Badge();
-    
+    var badge = new Badge(caching);
+    this.setState({refreshing:true})
     var type = this.props.type;
     badge.getUserBadges().then((badges) => {
-      _this.setState({
-        dataSource: _this.state.dataSource.cloneWithRows(badges),
-        loaded: true
-      });
-    });
-    /*badge.getBadges().done((badges) => {
-      if(badges.length && !_this.unmounting){
+      if(badges && badges.length) {
         _this.setState({
           dataSource: _this.state.dataSource.cloneWithRows(badges),
-          loaded: true
+          loaded: true,
+          refreshing: false
         });
+      } else {
+        this.emptyList();
       }
-    });*/
+    });
   }
+
+  emptyList(){
+    let text = 'Du hast noch keine Abzeichen. Du kannst diese Ansicht aktualisieren, indem du die Liste nach unten ziehst.';
+    console.log('EMPTY');
+    this.setState({
+      dataSource:this.state.dataSource.cloneWithRows([{id:'empty', text:text}]),
+      loaded: true, refreshing: false
+    });
+  }
+
+  _onRefresh() {
+    this.loadData(false);
+  }
+
 
   rowPressed(rowData) {
     //console.warn(styles.route);
     /*if(rowData.type == 'badge'){
-      Router.route({
-        title: 'Badge',
-        id: 'goal',
-        component: BadgeView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
+    Router.route({
+    title: 'Badge',
+    id: 'goal',
+    component: BadgeView,
+    passProps: {data: rowData}
+    }, this.props.navigator);
     } */
   }
 
@@ -77,43 +94,27 @@ class BadgeList extends Component{
   }
 
   renderRow(rowData){
-    rowData.done = true;
-    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
-      <View>
-        <View style={styles.list.rowContainer}>
-          <Image
-            style={{height:50, width:50}}
-            resizeMode='contain'
-            source={{uri:rowData.png}}
-          />
-          <View style={styles.list.textContainer}>
-            <Text style={styles.list.text}>
-              {rowData.name}
-            </Text>
-            <Text style={styles.list.right}>
-              {rowData.done ? <Image
-                style={styles._.icon}
-                resizeMode='cover'
-                source={require('Lernreflex/img/sign-check-icon.png')}
-              /> : ''}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.list.separator} />
+    if(rowData != 'loader')
+      rowData.done = true;
+    return <ListEntryCompetence
+      type='badge'
+      underlayColor={styles.list.liHover}
+      onPress={() => this.rowPressed(rowData)}
+      rowData={rowData}
+      style={styles.list.li} />
+    }
+
+    render(){
+      return <View style={styles.wrapper}>
+        <ListView
+          refreshControl={ <RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
+          style={styles._.list}
+          dataSource={this.state.dataSource}
+          renderSectionHeader={this.renderSectionHeader}
+          renderRow={this.renderRow}>
+        </ListView>
       </View>
-    </TouchableHighlight>
+    }
   }
 
-  render(){
-    return <View style={styles.wrapper}>
-      <ListView
-        style={styles._.list}
-        dataSource={this.state.dataSource}
-        renderSectionHeader={this.renderSectionHeader}
-        renderRow={this.renderRow}>
-      </ListView>
-    </View>
-  }
-}
-
-module.exports = BadgeList;
+  module.exports = BadgeList;

@@ -12,9 +12,11 @@ export {default as User} from 'Lernreflex/models/User';
 export {default as Competence} from 'Lernreflex/models/Competence';
 export {default as LearningTemplate} from 'Lernreflex/models/LearningTemplate';
 export {default as Course} from 'Lernreflex/models/Course';
+export {default as Badge} from 'Lernreflex/models/Badge';
 export {default as Activity} from 'Lernreflex/models/Activity';
 
 /* Components */
+export {default as SuperComponent} from 'Lernreflex/components/SuperComponent';
 export {default as CompetenceList} from 'Lernreflex/components/CompetenceList';
 export {default as SelectList} from 'Lernreflex/components/SelectList';
 export {default as CompetenceCreate} from 'Lernreflex/components/CompetenceCreate';

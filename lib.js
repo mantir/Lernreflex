@@ -49,7 +49,6 @@ let lib = {
       'übertragen',
       'übersetzen',
       'deuten',
-      'bestimmen',
       'identifizieren',
       'definieren',
       'darstellen',
@@ -87,6 +86,8 @@ let lib = {
       'einrichten',
       'konfigurieren',
       'löschen',
+      'anschließen',
+      'zeichnen',
       //Analyse
       'isolieren',
       'auswählen',
@@ -94,7 +95,6 @@ let lib = {
       'sortieren',
       'einteilen',
       'einordnen',
-      'bestimmen',
       'herausstellen',
       'analysieren',
       'vergleichen',
@@ -135,11 +135,12 @@ let lib = {
     generalCompetenceQuestions: [
       {id:1, text: 'Wie motiviert bist du das Lernziel zu erreichen?', type: 'multiple'},
       {id:2, text: 'Warum möchtest du das Lernziel erreichen?', type: 'free'},
-      {id:3, text: 'Wieviel Vorwissen hast du, welches dir zum Erreichen des Ziels dient?', type: 'multiple'},
+      {id:3, text: 'Welches Vorwissen hast du, welches dir zum Erreichen des Ziels dient?', type: 'multiple'},
       {id:4, text: 'Was wird ein Ergebnis deines Lernens sein?', placeholder: 'Aufsatz, Programm, Video, etc.', type: 'free'},
       {id:5, text: 'Wie möchtest du das Lernziel erreichen?', type: 'free'},
       {id:6, text: 'Wen kannst du Fragen, wenn du nicht weiterkommst?', type: 'free'},
       {id:7, text: 'Kannst du einfach im Internet suchen um weiterzukommen?', type: 'multiple'},
+      {id:8, text: 'Findest du, dass das Lernziel zu einfach ist?', type: 'free'},
     ]},
     functions: {
       ich: (infinitive) => { //Konjugation

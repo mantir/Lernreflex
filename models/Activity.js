@@ -29,7 +29,7 @@ class Activity extends Model{
   }
 
   commentsToView(competenceProgress, activity){
-    console.log(competenceProgress, activity);
+    //console.log(competenceProgress, activity);
     let comments = [];
     if(competenceProgress && Array.isArray(competenceProgress.evidences)) {
       for(var i in competenceProgress.evidences){
@@ -75,6 +75,22 @@ class Activity extends Model{
   return this.put('progress/'+obj.user.username+'/competences/'+obj.competence.name, o);
 }
 
+isDone(evidence, username){
+  console.log(evidence, username);
+  return evidence.comments && evidence.comments.filter((c) => c.user != username).length > 0;
+}
+
+areDone(activities, competenceData, username){
+  if(!competenceData.progress.evidences) return activities;
+  return activities.map((a) => {
+    a.done = competenceData.progress.evidences.filter((e) => {
+      return e.evidenceUrl.indexOf(a.url) > -1 && this.isDone(e, username)
+    }).length > 0;
+    console.log(a.done);
+    return a;
+  });
+}
+
 addUsernameToUrl(url, username){
   let symbol = url.indexOf('?') > -1 ? '&' : '?';
   return url+symbol+this.evidenceParamName+'='+username;
@@ -99,7 +115,7 @@ getCourseActivities(courseId){
     return _this.get('courses/'+courseId+'/activities', {userId:u.username, password:u.password}).then((d) => {
       let activities = [];
       let already = {};
-      console.log(d);
+      //console.log(d);
       if(d && d.length) {
         for(var i in d) {
           if(d[i] && d[i].activityTypes && d[i].activityTypes.length) {
@@ -118,7 +134,7 @@ getCourseActivities(courseId){
           }
         }
       }
-      console.log('Activities:', activities);
+      //console.log('Activities:', activities);
       return activities;
     });
   });

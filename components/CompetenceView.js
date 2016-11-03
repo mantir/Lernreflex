@@ -47,7 +47,7 @@ class CompetenceView extends Component{
       ]),
       activities: ds.cloneWithRows([
       ]),
-      loaded: false
+      loaded: false,
     };
     this.state.sliderValue = this.state.progress[this.state.currentAssessment];
     this.render = this.render.bind(this);
@@ -70,7 +70,6 @@ class CompetenceView extends Component{
   }
 
   componentWillReceiveProps(nextProps){
-    console.log('CompetenceView componentWillReceiveProps');
     this.loadUser(nextProps);
   }
 
@@ -78,7 +77,6 @@ class CompetenceView extends Component{
     let user = new User();
     let comp = new Competence(false);
     let _this = this;
-    //console.log(this.props);
     user.getCurrentUser().then((cu) => {
       //if(!user.different(this.state.currentUser, cu)) return;
       if(!user.different(this.state.currentUser, cu)) return;
@@ -108,39 +106,48 @@ class CompetenceView extends Component{
 
   updateState(props){
     props = props ? props : this.props;
-    let sliderProgress = {time:0, progress:0, value:0};
-    let answers = {};
-    let questions = [];
-    questions = lib.constants.generalCompetenceQuestions;
-    if(props.competenceData.progress && Object.keys(props.competenceData.progress).length) {
-      sliderProgress.progress = props.competenceData.progress.PROGRESS.assessmentIndex;
-      sliderProgress.time = props.competenceData.progress.TIME.assessmentIndex;
-      sliderProgress.value = sliderProgress.progress;
-      answers = (new Competence()).answersToView(props.competenceData, questions);
+    let fun = (questions) => {
+      let sliderProgress = {time:0, progress:0, value:0};
+      let answers = {};
+      //questions = lib.constants.generalCompetenceQuestions;
+      if(props.competenceData.progress && Object.keys(props.competenceData.progress).length) {
+        sliderProgress.progress = props.competenceData.progress.PROGRESS.assessmentIndex;
+        sliderProgress.time = props.competenceData.progress.TIME.assessmentIndex;
+        sliderProgress.value = sliderProgress.progress;
+        answers = (new Competence()).answersToView(props.competenceData, questions);
+      }
+      //console.log(questions);
+      this.setState({
+        loading:false,
+        progress: {
+          progress: sliderProgress.progress,
+          time: sliderProgress.time,
+          answers: answers,
+          questions: questions,
+        },
+        competenceData: props.competenceData,
+        sliderValue: sliderProgress.value,
+      });
     }
-console.log(questions);
-    this.setState({
-      loading:false,
-      progress: {
-        progress: sliderProgress.progress,
-        time: sliderProgress.time,
-        answers: answers,
-        questions: questions,
-      },
-      competenceData: props.competenceData,
-      sliderValue: sliderProgress.value,
-    });
+    if(!this.state.questions || !this.state.questions.length)
+      this.Competence.getQuestions(props.competence).then(fun);
+    else
+      fun(this.state.questions);
   }
 
   loadData(){
     var _this = this;
     let activity = new Activity();
-    activity.getActivities(this.props.competence, this.props.courseId).then((d) => {
-      _this.setState({
-        activities: d,
-        loadedActivities: true
-      });
-    }, (e) => {console.log('ACTIVITY-ERROR', e);});
+    let user = new User();
+    user.isLoggedIn().then((u) => {
+      activity.getActivities(this.props.competence, this.props.courseId).then((d) => {
+        d = activity.areDone(d, this.props.competenceData, u.username);
+        _this.setState({
+          activities: d,
+          loadedActivities: true
+        });
+      }, (e) => {console.log('ACTIVITY-ERROR', e);});
+    })
     this.Competence.getSubCompetences(this.props.competence)
     .then((d) => {
       d = _this.Competence.toView(d, _this.props.type);
@@ -149,49 +156,13 @@ console.log(questions);
         loadedSubcompetences: true
       });
     });
+    this.Competence.getQuestions(this.props.competence).then((questions) => {
+      _this.setState({
+        loadedQuestions: true,
+        questions: questions
+      });
+    });
   }
-
-  rowPressed(rowData) {
-    rowData.currentUser = this.state.currentUser;
-    let route = {};
-    if(rowData.type == 'competence'){
-      route = {
-        title: 'Lernziel',
-        id: this.props.type == 'goals' ? 'goal' : 'competence',
-        component: CompetenceView,
-        passProps: rowData
-      }
-    } else if(rowData.type == 'activity'){
-      rowData.competenceData = this.state.competenceData;
-      route = {
-        title: 'Aktivität',
-        id: 'activity',
-        component: ActivityView,
-        passProps: {...rowData}
-      }
-    }
-    route.rightButtonIcon = this.props.communityIcon;
-    route.onRightButtonPress = () => {Router.route({
-      id:'users',
-      component: UserList,
-      passProps: {
-        communityIcon: this.props.communityIcon,
-        previousRoute: route,
-        backTo: rowData.type,
-        competenceData: this.props.competenceData
-      }
-    }, this.props.navigator)};
-    Router.route(route, this.props.navigator);
-  }
-
-  renderRow(rowData){
-    return this._wrapRow(<ListEntryCompetence
-      type={rowData.type}
-      underlayColor={styles.list.liHover}
-      onPress={() => this.rowPressed(rowData)}
-      rowData={rowData}
-      style={[styles._.row, styles.list.withSeparator]} />);
-    }
 
     _renderAssessment(){
       let btns = [
@@ -233,8 +204,7 @@ console.log(questions);
       ];
       if(this.props.courseId) {
         btns.push({key:'activities', name: 'Aktivitäten', value: ''});
-      }
-      btns.push({key:'subcompetences', name: subCompName, value:''});
+      } //else btns.push({key:'subcompetences', name: subCompName, value:''});
       let _this = this;
       return btns.map(function(btn){
         var style = [styles._.tab];
@@ -331,8 +301,8 @@ console.log(questions);
         let slider = this.refs.slider;
         let _this = this;
         let p = {
-          minValue: slider.props.minimumValue,
-          maxValue: slider.props.maximumValue,
+          minValue: 0,
+          maxValue: this.Competence.scales[this.state.currentAssessment].values.length - 1,
           value: this.state.sliderValue,
           identify: this.state.currentAssessment,
           competence: this.props.competence
@@ -352,25 +322,68 @@ console.log(questions);
         //console.log(this.props.route);
         Router.route({
           id: 'questions',
-          passProps: {...this.props,
+          passProps: {
             competenceData:this.state.competenceData,
             answers: this.state.progress.answers,
-            questions: this.state.progress.questions
+            currentUser: this.state.currentUser,
+            questions: this.state.progress.questions,
+            questionsAnswered: () => {this.Competence.setState(this.props.competence, this.state.competenceData)}
           },
           component: Questions,
           previousRoute: this.props.route
         }, this.props.navigator);
       }
 
+      rowPressed(rowData) {
+        rowData.currentUser = this.state.currentUser;
+        let route = {};
+        if(rowData.type == 'competence'){
+          route = {
+            title: 'Lernziel',
+            id: this.props.type == 'goals' ? 'goal' : 'competence',
+            component: CompetenceView,
+            passProps: rowData
+          }
+        } else if(rowData.type == 'activity'){
+          rowData.competenceData = this.state.competenceData;
+          route = {
+            title: 'Aktivität',
+            id: 'activity',
+            component: ActivityView,
+            passProps: {...rowData}
+          }
+        }
+        route.rightButtonIcon = this.props.communityIcon;
+        route.onRightButtonPress = () => {Router.route({
+          id:'users',
+          component: UserList,
+          passProps: {
+            communityIcon: this.props.communityIcon,
+            previousRoute: route,
+            backTo: rowData.type,
+            competenceData: this.props.competenceData
+          }
+        }, this.props.navigator)};
+        Router.route(route, this.props.navigator);
+      }
+
+      renderRow(rowData){
+        return this._wrapRow(<ListEntryCompetence
+          type={rowData.type}
+          underlayColor={styles.list.liHover}
+          onPress={() => this.rowPressed(rowData)}
+          rowData={rowData}
+          style={[styles._.row, styles.list.withSeparator]} />);
+        }
+
       renderUser(){
-        //console.log(this.state.currentUser);
         if(this.state.currentUser){
           return <ListEntryCompetence
             type="currentUser"
             underlayColor={styles._.primary}
             onPress={() => this.showUsers()}
             rowData={this.state.currentUser}
-             />
+            />
         }
         return null;
       }
@@ -381,46 +394,48 @@ console.log(questions);
         if(this.state.loading) return <ScrollView style={styles.wrapper}>{this.renderUser()}<Loader /></ScrollView>
         return <ScrollView style={styles.wrapper}>
           {this.renderUser()}
-          {this._wrapRow(<Text style={styles.comp.title}>{competence.competence}</Text>)}
+          {this._wrapRow(<Text style={styles.comp.title}>{competence.text}</Text>)}
 
           {this._wrapRow(<Text style={[styles.comp.sectionHead]}>Selbsteinschätzung</Text>, styles._.justify, styles._.otherBG)}
 
           {this._renderAssessment()}
           {this._renderSlider()}
 
-          {this._wrapRow(<TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.showQuestions()} style={[styles._.row, styles.list.withSeparator]}>
-          <View style={styles._.col}>
-            <View style={styles.list.rowContainer}>
-              <View style={styles.list.textContainer}>
-                <Text style={styles.list.text}>
-                  Reflexionsfragen
-                </Text>
-                <Text style={styles.list.right}>
-                  {Object.keys(this.state.progress.answers).length}/{this.state.progress.questions.length}
-                </Text>
+          {this.state.loadedQuestions ? this._wrapRow(
+            <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.showQuestions()} style={[styles._.row, styles.list.withSeparator]}>
+              <View style={styles._.col}>
+                <View style={styles.list.rowContainer}>
+                  <View style={styles.list.textContainer}>
+                    <Text style={styles.list.text}>
+                      Reflexionsfragen
+                    </Text>
+                    <Text style={styles.list.right}>
+                      {Object.keys(this.state.progress.answers).length}/{this.state.progress.questions.length}
+                    </Text>
+                  </View>
+                </View>
               </View>
+            </TouchableHighlight>) : <Loader></Loader>
+          }
+
+            <View style={styles._.row}>
+              {this._renderTabs()}
             </View>
-          </View>
-        </TouchableHighlight>)}
+            {this._renderTabContent()}
+          </ScrollView>
+        }
+      }
+      /*
+      <TouchableHighlight
+      onPress={() => Router.route({
+      id: this.props.type == 'goals' ? 'goal.add' : 'competence.add',
+      component: CompetenceCreate,
+      passProps:{
+      superCompetence: this.props.competence
+      }
+      }, this.props.navigator)}
+      style={styles.comp.addBtn}>
+      <Text style={styles._.buttonText}><Icon name="md-add" size={30} color={styles._.primary} /></Text>
+      </TouchableHighlight>*/
 
-        <View style={styles._.row}>
-          {this._renderTabs()}
-        </View>
-        {this._renderTabContent()}
-      </ScrollView>
-    }
-  }
-  /*
-  <TouchableHighlight
-  onPress={() => Router.route({
-  id: this.props.type == 'goals' ? 'goal.add' : 'competence.add',
-  component: CompetenceCreate,
-  passProps:{
-  superCompetence: this.props.competence
-  }
-  }, this.props.navigator)}
-  style={styles.comp.addBtn}>
-  <Text style={styles._.buttonText}><Icon name="md-add" size={30} color={styles._.primary} /></Text>
-  </TouchableHighlight>*/
-
-  module.exports = CompetenceView;
+      module.exports = CompetenceView;

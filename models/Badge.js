@@ -3,8 +3,8 @@ import Model from 'Lernreflex/models/Model';
 import {User} from 'Lernreflex/imports';
 
 class Badge extends Model{
-  constructor(){
-    super('Badge');
+  constructor(caching = true){
+    super('Badge', caching);
   }
 
   generateID(obj){

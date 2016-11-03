@@ -5,6 +5,7 @@ import {
   TouchableHighlight,
   ListView,
   ScrollView,
+  RefreshControl,
   Text,
   View,
   NavigatorIOS,
@@ -22,6 +23,7 @@ class UserList extends Component{
     var _this = this;
     this.state = {
       dataSource: ds,
+      refreshing: false,
       mySelf:{}
     }
     this.renderRow = this.renderRow.bind(this);
@@ -39,10 +41,8 @@ class UserList extends Component{
 
   componentDidMount(){
     this.unmounting = false;
-    let user = new User(false);
-    this.setState({
-      dataSource: this.state.dataSource.cloneWithRows(['loader'])
-    });
+    let user = new User();
+    //this.setState({ dataSource: this.state.dataSource.cloneWithRows(['loader']) });
     user.getCurrentUser().then((cu) => {
       user.isLoggedIn().then((u) => {
         console.log(u, cu);
@@ -55,9 +55,10 @@ class UserList extends Component{
     })
   }
 
-  loadData(){
-    let user = new User();
+  loadData(caching = true){
+    let user = new User(caching);
     let _this = this;
+    this.setState({refreshing:true})
     user.getUsers(this.props.competenceData.courseId).then((d) => {
       user.isLoggedIn().then((u) => {
         if(_this.state.currentUser) {
@@ -65,9 +66,12 @@ class UserList extends Component{
           d.unshift(u);
           d.unshift({name:'currentUser'});
         }
-         _this.setState({dataSource: _this.state.dataSource.cloneWithRows(d)});
+         _this.setState({
+           dataSource: _this.state.dataSource.cloneWithRows(d),
+           refreshing: false
+         });
       })
-      //console.log('USERS:', d);
+      console.log('USERS:', d);
     });
   }
 
@@ -81,9 +85,11 @@ class UserList extends Component{
     route.passProps.currentUser = rowData;
     route.component = this.props.backTo == 'competence' ? CompetenceView : ActivityView;
     console.log('user slected', route.passProps);
+    console.log(rowData);
     let user = new User();
     user.setCurrentUser(rowData).then(() => {
-      Router.route(route, this.props.navigator, {replacePrevious:true});
+      this.props.navigator.pop();
+      //Router.route(route, this.props.navigator, {replacePrevious:true});
     })
   }
   renderUser(){
@@ -105,9 +111,14 @@ class UserList extends Component{
       rowData={rowData} />
   }
 
+  _onRefresh(){
+    this.loadData(false);
+  }
+
   render(){
     return <View style={styles.wrapper}>
       <ListView
+        refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} />}
         style={styles._.list}
         enableEmptySections={true}
         dataSource={this.state.dataSource}

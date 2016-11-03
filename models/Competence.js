@@ -63,115 +63,65 @@ class Competence extends Model{
         console.log(ov);
         if(!ov) return {};
         let together = {};
-        if(ov.courses.length > 0){ //From courses
+        if(ov.courses && ov.courses.length > 0){ //From courses
           ov.courses.map((course) => {
             if(course.courseId != learningTemplate.courseContext) {
               together[course.printableName] = course.competences.map((comp) => {
-                return {name:comp, inCourse:true, courseId: course.courseId}
+                return {name:comp, text:this.toIch(comp), inCourse:true, courseId: course.courseId}
               });
             }
           });
         }
-        if(ov.learningTemplates.length > 0) {
+        if(ov.learningTemplates && ov.learningTemplates.length > 0) {
           ov.learningTemplates.map((l) => {
             if(!l.competences) return null;
             together[l.selectedTemplate] = l.competences.map((comp) => {
-              return {name:comp}
+              return {name:comp, text:this.toIch(comp)}
             });
           });
         }
         return this.getProgress().then((progress) => {
           together = this.joinProgressAndCompetences(together, progress);
-          return this.filterType(together, type, user);
-        });
+          return this.checkHasNewGoalReached(together, user, type).then(() => this.filterType(together, type, user)
+        );
       });
     });
-      //return this.getItem('competences', {}).then(this.mapToNumericalKeys);
-      /*var learningTemplate = new LearningTemplate(this.caching);
-      var course = new Course(this.caching);
-      var _this = this;
-      var doneCounter = 0;
-      var resultTemplates = {}, orderedTemplates = {};
-      var resultCourses = {}, orderedCourses = {};
-      return new Promise((resolve, reject) => {
-      console.log('getCompetences');
-      Promise.all([ //LearningTemplates, Kurse und zugehörige Kompetenzen holen
-      learningTemplate.getLearningTemplates()
-      .then((templates) => {
-      //console.log('TEMPLATES:', templates);
-      var counter = 0;
-      templates = templates.data;
-      if(!templates) {
-      return [];
-    }
-    var promises = [];
-    templates.map((template) => {
-    var already = {};
-    promises.push(_this.get('competences/', {courseId:'university', asTree:true, learningTemplate: template}).then((d) => {
-    counter++;
-    //console.log('Template-Kompetenzen:', d);
-    d = _this.parseFromTree(d);
-    if(d.length) {
-    resultTemplates[template] = d;
+  });
+}
+
+countCompetences(competences){
+  let count = 0;
+  for(var category in competences) {
+    count += competences[category].length;
   }
-  //console.log('TEMPLATES:', resultTemplates);
-  if(counter == templates.length){
-  templates.filter((t) => orderedTemplates[t] = resultTemplates[t])
+  return count;
 }
-}));
-}
-)
-//console.log(promises);
-return Promise.all(promises);
-}, () => reject()),
-course.getCourses()
-.then((courses) => {
-//console.log('Kurs-Kompetenzen:', courses);
-var counter = 0;
-var promises = [];
-if(!Array.isArray(courses) || !Object.keys(courses).length) {
-return [];
-}
-courses.map((course) => {
-var already = {};
-promises.push(_this.get('competences/', {courseId:course.courseid, asTree:true}).then((d) => {
-counter++;
-//console.log('KURS', course);
-//console.log(d, _this.lastRequest);
-d = _this.parseFromTree(d);
-if(d.length) {
-d = d.map((e) => {
-e.inCourse = true;
-e.courseId = course.courseid;
-return e;
-});
-resultCourses[course.name] = d;
-}
-//console.log('KURSE:', resultCourses);
-if(counter == courses.length){
-courses.filter((t) => orderedCourses[t.name] = resultCourses[t.name])
-}
-}));
-});
-return Promise.all(promises);
-}, () => reject())])
-.then((learningTemplates, courses) => {
-console.log(orderedTemplates);
-let together = Object.assign(orderedCourses, orderedTemplates);
-_this.getProgress().then((progress) => {
-together = this.joinProgressAndCompetences(together, progress);
-let user = new User();
-user.isLoggedIn().then((u) => {
-resolve(this.filterType(together, type, u));
-});
-});
-});
-});*/
+
+checkHasNewGoalReached(allCompetences, user, type){
+  let itemName = 'allCompetences';
+  console.log(allCompetences);
+  if(!allCompetences || !Object.keys(allCompetences).length) return this.setItem(itemName, allCompetences);
+  return this.getItem(itemName, false).then((allOldCompetences) => {
+    if(!allOldCompetences || !Object.keys(allOldCompetences).length) return this.setItem(itemName, allCompetences);
+    let oldGoals = this.filterType(allOldCompetences, 'goals', user);
+    let oldCompetences = this.filterType(allOldCompetences, 'competences', user);
+    let newGoals = this.filterType(allCompetences, 'goals', user);
+    let newCompetences = this.filterType(allCompetences, 'competences', user);
+    console.log(this.countCompetences(newGoals), this.countCompetences(oldGoals), this.countCompetences(oldCompetences), this.countCompetences(newCompetences));
+    let newGoalReached = false;
+    if(this.countCompetences(newGoals) < this.countCompetences(oldGoals) && this.countCompetences(oldCompetences) < this.countCompetences(newCompetences) ) {
+      console.log('new GOAL Reached!');
+      newGoalReached = true;
+      this.newGoalsReached = this.countCompetences(newCompetences) - this.countCompetences(oldCompetences);
+    }
+    return this.setItem(itemName, allCompetences);
+  });
 }
 
 joinProgressAndCompetences(together, progress){
   Object.keys(together).map((key) => {
     let comps = together[key];
+    //console.log(together, progress);
     if(typeof(comps) != 'object') return;
     together[key] = together[key].map((comp) => {
       if(progress && progress[comp.name]){
@@ -186,17 +136,18 @@ joinProgressAndCompetences(together, progress){
 }
 
 filterType(competences, type = 'competences', user){ //Filter if learning goal is reached or not
-  console.log(competences);
+  //console.log(competences);
+  let filtered = {};
   for(var category in competences) {
-    if(competences[category])
-    competences[category] = competences[category].filter((c) => {
+    if(competences[category] && competences[category].length)
+    filtered[category] = competences[category].filter((c) => {
       let done = (!c.inCourse && c.progress && c.progress.PROGRESS && c.progress.PROGRESS.assessmentIndex == 10)
       || (c.inCourse && this.hasCommentFromOtherUser(c, user.username));
       return type == 'competences' && done || type == 'goals' && !done;
     });
-    if(!competences[category] || !competences[category].length) delete competences[category];
+    if(!filtered[category] || !filtered[category].length) delete filtered[category];
   }
-  return competences;
+  return filtered;
 }
 
 hasCommentFromOtherUser(competence, username){
@@ -221,7 +172,7 @@ getProgress(username){
     });
     return progress;
   };
-  console.log('USER-Progress:', username);
+  //console.log('USER-Progress:', username);
   if(username) {
     return this.get('progress/'+username).then(callback);
   }
@@ -243,10 +194,21 @@ progressToView(p){
     pro[a.typeOfSelfAssessment] = a;
   })
 
-  console.log('ProgressToView', pro);
+  //console.log('ProgressToView', pro);
   pro.evidences = p.competenceLinksView;
   pro.answers = p.reflectiveQuestionAnswerHolder ? p.reflectiveQuestionAnswerHolder.data : [];
   return pro;
+}
+
+getQuestions(competenceId){
+  let caching = this.caching;
+  this.caching = false;
+  return this.get('competences/'+competenceId+'/questions').then((d) => {
+    let questions = d ? d.map((q) => q.question) : [];
+    console.log(questions);
+    this.caching = caching;
+    return questions.map((q, i) => { return {text:q, index:i}; });
+  })
 }
 
 saveProgress(p){
@@ -266,37 +228,38 @@ saveProgress(p){
   progress = progress.userCompetenceProgressList[0];
   let user = new User();
   return user.isLoggedIn().then((u) => {
-    console.log('USER-PROGRESS', JSON.stringify(progress));
+    //console.log('USER-PROGRESS', JSON.stringify(progress));
     return this.put('progress/'+u.username+'/competences/'+progress.competence, progress)
     .then(() => this.progressToView(progress));
-    //return this.put('progress/'+u.username, progress).then((d) => {console.log('SAVED:', d);});
   })
 }
 
 answersToView(competenceData, questions){
   let answersQ = {};
   let answers = {};
-  try {
-    answersQ = lib.functions.setKeys(competenceData.progress.answers, 'questionId');
-    //console.log(answersQ);
-    //console.log(questions);
-    for(var i in answersQ) {
-      for(var j in questions){
-        //console.log(i, questions[j].text, i.indexOf(questions[j].text));
-        if(i.indexOf(questions[j].text) > -1) {
-          answers[questions[j].text] = answersQ[i].text;
-          break;
-        }
+  let unordered = {};
+  answersQ = lib.functions.setKeys(competenceData.progress.answers, 'questionId');
+  console.log(answersQ);
+  console.log(questions);
+  for(let i in answersQ) {
+    for(var j in questions){
+      //console.log(i, questions[j].text, i.indexOf(questions[j].text));
+      if(i.indexOf(questions[j].text) > -1) {
+        let t = questions[j].text;
+        if(!unordered[t]) unordered[t] = [];
+        unordered[t].push(answersQ[i]);
       }
     }
-  } catch(e) {
-    answers = [];
   }
+  for(let i in unordered){
+    answers[i] = unordered[i].sort((a, b) => a.datecreated < b.datecreated)[0].text;
+  }
+  console.log(answers);
   return answers;
 }
 
 saveAnswers(competenceData, answers){
-  console.log(competenceData, answers);
+  //console.log(competenceData, answers);
   let user = new User();
   let promises = [];
   return user.isLoggedIn().then((u) => {
@@ -308,6 +271,7 @@ saveAnswers(competenceData, answers){
   };*/
   answers = answers.map((a) => {
     a.userId = u.username;
+    a.competenceId = competenceData.name;
     return a
   });
   for(var i in answers) {
@@ -326,14 +290,11 @@ saveAnswers(competenceData, answers){
 */
 parseFromTree(d){
   var _this = this;
-  //console.log(d);
   if(!d || !Object.keys(d).length ){
-    //console.log('OUT-1');
     return [];
   }
   d = d[0].children;
   if(!d || !Object.keys(d).length){
-    //console.log('OUT-2');
     return [];
   }
   var subs = {};
@@ -368,6 +329,7 @@ toView(comp, type){
     return {
       name: comp.name,
       competence:comp.name,
+      text: this.toIch(comp.name),
       courseId: comp.courseId,
       inCourse: comp.inCourse,
       progress: comp.progress,
@@ -384,6 +346,26 @@ toView(comp, type){
   return f(comp, type);
 }
 
+toIch(name){
+  let die = name.startsWith('Die S.');
+  if(name.startsWith('S.') || die) {
+    let s = name.split(' ')
+    let verb = s[die ? 2 : 1];
+    let wholeVerb = verb;
+    let last = s[s.length - 1].replace(/\./, '');
+    //let index = lib.constants.verbs.indexOf(wholeVerb);
+    let prefix = lib.constants.prefixes.indexOf(last) > - 1;
+    if(prefix) {
+      wholeVerb = last+verb;
+      //index = lib.constants.verbs.indexOf(wholeVerb);
+    }
+    name = name.replace(/^(Die )?S\./, 'Ich');
+    let newVerb = lib.functions.ich(wholeVerb).split(' ... ');
+    name = name.replace(new RegExp(verb), newVerb[0]);
+  }
+  return name;
+}
+
 getSubCompetences(rootCompetence, courseId = 'university'){
   var _this = this;
   return this.get('competences/', {rootCompetence: rootCompetence, courseId:courseId, asTree: true}).then((d) => {
@@ -394,3 +376,78 @@ getSubCompetences(rootCompetence, courseId = 'university'){
 }
 
 module.exports = Competence;
+
+//getCompetences as single requests: very slow, better is overview
+//return this.getItem('competences', {}).then(this.mapToNumericalKeys);
+/*var learningTemplate = new LearningTemplate(this.caching);
+var course = new Course(this.caching);
+var _this = this;
+var doneCounter = 0;
+var resultTemplates = {}, orderedTemplates = {};
+var resultCourses = {}, orderedCourses = {};
+return new Promise((resolve, reject) => {
+console.log('getCompetences');
+Promise.all([ //LearningTemplates, Kurse und zugehörige Kompetenzen holen
+learningTemplate.getLearningTemplates()
+.then((templates) => {
+//console.log('TEMPLATES:', templates);
+var counter = 0;
+templates = templates.data;
+if(!templates) {
+return [];
+}
+var promises = [];
+templates.map((template) => {
+var already = {};
+promises.push(_this.get('competences/', {courseId:'university', asTree:true, learningTemplate: template}).then((d) => {
+counter++;
+d = _this.parseFromTree(d);
+if(d.length) {
+resultTemplates[template] = d;
+}
+if(counter == templates.length){
+templates.filter((t) => orderedTemplates[t] = resultTemplates[t])
+}
+}));
+}
+)
+return Promise.all(promises);
+}, () => reject()),
+course.getCourses()
+.then((courses) => {
+var counter = 0;
+var promises = [];
+if(!Array.isArray(courses) || !Object.keys(courses).length) {
+return [];
+}
+courses.map((course) => {
+var already = {};
+promises.push(_this.get('competences/', {courseId:course.courseid, asTree:true}).then((d) => {
+counter++;
+d = _this.parseFromTree(d);
+if(d.length) {
+d = d.map((e) => {
+e.inCourse = true;
+e.courseId = course.courseid;
+return e;
+});
+resultCourses[course.name] = d;
+}
+if(counter == courses.length){
+courses.filter((t) => orderedCourses[t.name] = resultCourses[t.name])
+}
+}));
+});
+return Promise.all(promises);
+}, () => reject())])
+.then((learningTemplates, courses) => {
+let together = Object.assign(orderedCourses, orderedTemplates);
+_this.getProgress().then((progress) => {
+together = this.joinProgressAndCompetences(together, progress);
+let user = new User();
+user.isLoggedIn().then((u) => {
+resolve(this.filterType(together, type, u));
+});
+});
+});
+});*/

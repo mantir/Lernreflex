@@ -2,7 +2,7 @@
 import React from 'react';
 var Router = {
   systemName: 'Lernreflex',
-  adminNames: ['mkapp', 'admin'],
+  adminNames: ['mkapp', 'admin', 'teacher'],
   icons: {
     goals:'ios-pie-outline',
     badges:'md-ribbon',
@@ -20,7 +20,7 @@ var Router = {
     }
     switch (route.id) {
       case 'goals':
-        route.passProps = {type:'goals'};
+        route.passProps = {...route.passProps, type:'goals'};
         route.title = 'Lernziele';
       break;
       case 'competences':
@@ -60,7 +60,7 @@ var Router = {
         route.title = 'Benachrichtigungen';
       break;
       case 'badges':
-        route.title = 'Badges';
+        route.title = 'Abzeichen'; //'Badges';
       break;
       case 'admin':
         route.title = 'Admin';
