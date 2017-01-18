@@ -1,0 +1,36 @@
+{
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc", "closure"]
+  },
+  "source": {
+    "include": [ "./components", "./models" ],
+    "includePattern": ".+\\.js$",
+    "excludePattern": "(localip|generate|^\\.)"
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "systemName"            : "Lernreflex",
+    "footer"                : "",
+    "copyright"             :  "Martin Kapp",
+    "includeDate"           : "",
+    "navType"               : "vertical",
+    "theme"                 : "flatly",
+    "linenums"              : true,
+    "collapseSymbols"       : true,
+    "inverseNav"            : false,
+    "outputSourceFiles"     : true ,
+    "outputSourcePath"      : true,
+    "dateFormat"            : "DD.MM.Y",
+    "syntaxTheme"           : "default",
+    "sort"                  : true,
+    "search"                : true
+  },
+  "opts": {
+    "destination": "./docs/",
+    "template": "./node_modules/ink-docstrap/template",
+    "encoding": "utf8"
+  }
+}
