@@ -31,14 +31,11 @@ import {styles, Router, User, UserLogin, Icon, CompetenceCreate, UserList, Compe
 
 var _navigator; // we fill this up upon on first navigation.
 
-BackAndroid.addEventListener('hardwareBackPress', () => {
-  if (_navigator.getCurrentRoutes().length === 1  ) {
-     return false;
-  }
-  _navigator.pop();
-  return true;
-});
-
+/**
+ * Starting point for view for Lernreflex for Android
+ * @extends React.Component
+ * @constructor
+ */
 class Lernreflex extends Component {
   constructor(){
     super();
@@ -100,19 +97,19 @@ class Lernreflex extends Component {
         if(route.id == 'goals')
         return (
           <TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight}
-            onPress={() => Router.route({
+            onPress={() => {Router.route({
               id:'goal.add',
               component:CompetenceCreate,
               passProps: {
                 afterCompetenceCreate: _this.afterCompetenceCreate
               }
-            }, navigator)} >
+            }, navigator)}} >
             <Icon name="md-add" size={iconSize} color='#FFF' />
             </TouchableHighlight>
         );
         if(route.id == 'competences')
         return (
-          <TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight} onPress={() => Router.route({id:'competence.add', component:CompetenceCreate}, navigator)} >
+          <TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight} onPress={() => {Router.route({id:'competence.add', component:CompetenceCreate}, navigator)}} >
             <Icon name="md-add" size={iconSize} color='#FFF' />
           </TouchableHighlight>
         );
@@ -249,7 +246,7 @@ class Lernreflex extends Component {
         title: this.systemName + ' Login',
         component: UserLogin,
         passProps: {
-          onLogin: () => this.onLogin()
+          onLogin: () => { this.onLogin() }
         }
       }, 'userLogin');
     }
@@ -282,7 +279,7 @@ class Lernreflex extends Component {
             passProps: {
               ref: 'goals',
               type:'goals',
-              updateBadge: this.updateBadge.bind(this)
+              updateBadge: this.updateBadge
             }
           }, 'navGoal')}
         </TabNavigator.Item>
@@ -337,7 +334,7 @@ class Lernreflex extends Component {
             title: 'Menü',
             component: Menu,
             passProps: {
-              onLogout: () => this.onLogout()
+              onLogout: () => { this.onLogout() }
             }
           }, 'navMenu')}
         </TabNavigator.Item>
@@ -345,6 +342,17 @@ class Lernreflex extends Component {
     );
     }
   }
+
+  /**
+   * Eventlistener for Android back button. Will pop the current navigator, if possible.
+   */
+  BackAndroid.addEventListener('hardwareBackPress', () => {
+    if (_navigator.getCurrentRoutes().length === 1  ) {
+       return false;
+    }
+    _navigator.pop();
+    return true;
+  });
 
 
   AppRegistry.registerComponent('Lernreflex', () => Lernreflex);

@@ -15,6 +15,11 @@ import {
 import {styles, Badge, ListEntryCompetence} from 'Lernreflex/imports';
 import Router from 'Lernreflex/Router';
 
+/**
+* Represents the view for the badges.
+* @extends React.Component
+* @constructor
+*/
 
 class BadgeList extends Component{
 
@@ -43,6 +48,11 @@ class BadgeList extends Component{
     this.loadData();
   }
 
+
+  /**
+  * Load Badges from API
+  * @param caching {bool} If badges can be fetched from cache
+  */
   loadData(caching = false){
     var _this = this;
     var badge = new Badge(caching);
@@ -61,6 +71,10 @@ class BadgeList extends Component{
     });
   }
 
+
+  /**
+  * Rendered if there are no badges
+  */
   emptyList(){
     let text = 'Du hast noch keine Abzeichen. Du kannst diese Ansicht aktualisieren, indem du die Liste nach unten ziehst.';
     console.log('EMPTY');
@@ -70,6 +84,10 @@ class BadgeList extends Component{
     });
   }
 
+
+  /**
+  * Executed on pull to refresh to load badges
+  */
   _onRefresh() {
     this.loadData(false);
   }
@@ -88,33 +106,46 @@ class BadgeList extends Component{
   }
 
 
-
+  /**
+  * Render list section header. Still not implemented. (see React Native ListView docs)
+  * @param sectionData {object}
+  * @param sectionID {string}
+  */
   renderSectionHeader(sectionData, sectionID){
     return null;
   }
 
+
+  /**
+  * Render a badge in a row
+  * @param rowData {object} a badge object
+  * @return {ListEntryCompetence}
+  */
   renderRow(rowData){
     if(rowData != 'loader')
-      rowData.done = true;
+    rowData.done = true;
     return <ListEntryCompetence
       type='badge'
       underlayColor={styles.list.liHover}
       onPress={() => this.rowPressed(rowData)}
       rowData={rowData}
       style={styles.list.li} />
-    }
-
-    render(){
-      return <View style={styles.wrapper}>
-        <ListView
-          refreshControl={ <RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
-          style={styles._.list}
-          dataSource={this.state.dataSource}
-          renderSectionHeader={this.renderSectionHeader}
-          renderRow={this.renderRow}>
-        </ListView>
-      </View>
-    }
   }
 
-  module.exports = BadgeList;
+  /**
+  * Render the list with the badges
+  */
+  render(){
+    return <View style={styles.wrapper}>
+      <ListView
+        refreshControl={ <RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
+        style={styles._.list}
+        dataSource={this.state.dataSource}
+        renderSectionHeader={this.renderSectionHeader}
+        renderRow={this.renderRow}>
+      </ListView>
+    </View>
+  }
+}
+
+module.exports = BadgeList;

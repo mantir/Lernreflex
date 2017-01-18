@@ -1,4 +1,6 @@
 'use strict'
+/** @module styles */
+
 import React, {
   StyleSheet,
   Platform
@@ -20,7 +22,13 @@ var lightGray = '#EEE';
 var topHeight = 50;
 var iosTop = 64;
 
-var general = StyleSheet.create({
+/**
+ * Contains the general styles and often used colors for consistency.
+ * @var _
+ * @namespace _
+ */
+
+var _ = StyleSheet.create({
   button: {
     backgroundColor: secondary,
     justifyContent:'center',
@@ -29,7 +37,7 @@ var general = StyleSheet.create({
     margin: 10,
   },
   buttonActive:{
-    backgroundColor:primaryBG
+    backgroundColor:secondary
   },
   tab:{
     flex:1,
@@ -140,18 +148,31 @@ var general = StyleSheet.create({
     color:secondary
   }
 });
-general.primary = primaryBG;
-general.primaryBrighter = brighterPrimary;
-general.primaryDarker = primaryDarker;
-general.secondary = secondary;
-general.secondaryBrighter = secondaryBright;
-general.navBg = primaryBG;
-general.navColor = '#FFF';
-general.navBtnColor = '#FFF';
-general.hoverBtn = secondaryBright;
-general.tabIconColor = tabIconColor;
-general.bg = '#FFF';
-general.text = '#000';
+
+/** Contains the primary background color */
+_.primary = primaryBG;
+/** Contains the primary background color brighter */
+_.primaryBrighter = brighterPrimary;
+/** Contains the primary background color darker */
+_.primaryDarker = primaryDarker;
+/** Contains the secondary color */
+_.secondary = secondary;
+/** Contains the secondary color brighter */
+_.secondaryBrighter = secondaryBright;
+/** Contains the background color for the navigation on top */
+_.navBg = primaryBG;
+/** Contains the background color of the tab bar at the bottom */
+_.navColor = '#FFF';
+/** Contains the primary background color of the buttons in the tab bar */
+_.navBtnColor = '#FFF';
+/** Contains the color of a tapped button */
+_.hoverBtn = secondaryBright;
+/** Contains the color of the icons in the tabbar */
+_.tabIconColor = tabIconColor;
+/** Contains the background color of the content */
+_.bg = '#FFF';
+/** Contains the default text color */
+_.text = '#000';
 
 var list = StyleSheet.create({
 
@@ -198,9 +219,13 @@ var list = StyleSheet.create({
   },
 });
 list.liHover = '#DDD';
-list.liHeadHover =  general.navBg;
+list.liHeadHover =  _.navBg;
 
-var competence = StyleSheet.create({
+/**
+ * Contains the competence styles
+ * @namespace comp
+ */
+var comp = StyleSheet.create({
   title: {
     fontSize: 20,
     padding: 10
@@ -299,9 +324,24 @@ var competence = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex:1
+  },
+  circleText:{
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    top: 45,
+    left: 18,
+    width: 90,
+    textAlign: 'center',
+    color: primaryBG,
+    fontSize: 20,
+    fontWeight: '100'
   }
 });
 
+/**
+ * Contains the user styles
+ * @namespace user
+ */
 var user = StyleSheet.create({
   login:{
     backgroundColor:primaryBG
@@ -325,10 +365,11 @@ var user = StyleSheet.create({
   }
 });
 
+
 var styles = {
-  _: general,
+  _: _,
   list: list,
-  comp: competence,
+  comp: comp,
   user: user,
   max: {
     competenceTitle: 140,
@@ -337,7 +378,7 @@ var styles = {
     comment: 500,
     answer: 500
   },
-  wrapper: general.wrapper,
+  wrapper: _.wrapper,
 };
 
 module.exports = styles;

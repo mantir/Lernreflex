@@ -7,6 +7,15 @@ import ip from 'Lernreflex/localip';
 import lib from 'Lernreflex/lib';
 
 //Default API-URL: fleckenroller.cs.uni-potsdam.de/app/competence-base
+/**
+* Represents a model. All models inherit from this class. It handles the communication
+* to the server and the caching and storing of the data locally.
+* The handling of local storage and global state should be implemented in the future with the REDUX Framework.
+* Local storage and AsyncStorage are used here as a synonym.
+* @constructor
+* @param {string} className - The name of the object class.
+* @param {bool} caching - If data can be fetched from cache.
+*/
 
 class Model {
   constructor(className, caching = true){
@@ -47,6 +56,11 @@ class Model {
     this.cache_time = 3600; //In seconds
   }
 
+  /**
+  * Set the API version for this model.
+  * @param num {int} 0 or 1
+  * @return {Promise}
+  */
   setApi(num){
     if(num == 0){
       this.api = this.api0;
@@ -56,6 +70,12 @@ class Model {
     }
   }
 
+  /**
+  * Send a HTTP PUT request to the API
+  * @param url {string} Url
+  * @param body {object} Message body
+  * @return {Promise}
+  */
   put(url, body){
     let req = {
       method: 'PUT',
@@ -65,6 +85,12 @@ class Model {
     return this.fetch(url, req);
   }
 
+  /**
+  * Send a HTTP GET request to the API
+  * @param url {string} Url
+  * @param params {object} Query parameters
+  * @return {Promise}
+  */
   get(url, params){
     let req = {
       method: 'GET',
@@ -87,6 +113,12 @@ class Model {
     return this.fetch(url, req, nocache);
   }
 
+  /**
+  * Send a HTTP POST request to the API
+  * @param url {string} Url
+  * @param body {object} Request body
+  * @return {Promise}
+  */
   post(url, body){
     let req = {
       method: 'POST',
@@ -96,6 +128,13 @@ class Model {
     return this.fetch(url, req);
   }
 
+  /**
+  * Send a request to the API
+  * @param url {string} Url
+  * @param req {object} Contains the request method, headers and body
+  * @param nocache {bool} If nothing should be fetched from cache
+  * @return {Promise}
+  */
   fetch(url, req, nocache){
     //console.log('Fecthing:', url);
     url = this.api + url;
@@ -160,9 +199,14 @@ class Model {
   }
 
   delete(url){
-
+    /*not implemented*/
   }
 
+  /**
+  * CHeck if a data object fits to its definition
+  * @param obj {object} Data object
+  * @return {object}
+  */
   checkDefinition(obj){
     if(!this.definition) return obj;
     var error = [];
@@ -181,15 +225,33 @@ class Model {
     return obj;
   }
 
+  /**
+  * Store a value locally
+  * @param key {string} Key
+  * @param value {mixed} Value to store for the key
+  */
   save(key, value){
     this.setItem(key, value);
   }
 
+  /**
+  * Get the key in the local storage for given key and classname
+  * @param key {string} Key
+  * @param name {string} A class name (Optional)
+  * @return {Promise}
+  */
   getName(key, name){
     name = name ? name : this.className;
     return this.prefix + name + '_' + key;
   }
 
+  /**
+  * Set an item in the AsyncStorage
+  * @param key {string} Key
+  * @param value {mixed} Value to store for the key
+  * @param time {bool} If the string "_time" should be added at the end of the key name. This is for storing storing times for certain values.
+  * @return {Promise}
+  */
   setItem(key, value, time){
     //console.log('KEYNAME:', this.getName(key));
     return AsyncStorage.setItem(this.getName(key), JSON.stringify(value)).then((d) => {
@@ -198,39 +260,78 @@ class Model {
       return d;
     })
   }
-  /*
-  *
+
+  /**
+  * Get an item from the AsyncStorage
+  * @param key {string} Key
+  * @param defaultValue {mixed} The default value to return, if nothing is stored under the given key. (Optional)
+  * @param name {string} A class name (Optional)
+  * @param time {bool} If the string "_time" is added to the end of the key (Optional)
+  * @return {Promise}
   */
   getItem(key, defaultValue, name, time){
     time = time ? '_time' : '';
     return AsyncStorage.getItem(this.getName(key, name)+time).then((value) => { return value ? JSON.parse(value) : defaultValue; });
     //item ? JSON.parse(item) : defaultValue;
   }
+  /**
+  * Get all the keys in the AsynStorage starting with the prefix of this app defined in the constructor.
+  * @return {Promise}
+  */
   getAllKeys(){
     return AsyncStorage.getAllKeys().then((keys) => keys.filter((k) => k.startsWith(this.prefix)));
   }
 
+  /**
+  * Remove all keys and values from AsynStorage.
+  * @return {Promise}
+  */
   clearStorage(){
     return this.getAllKeys().then((keys) => keys && keys.length ? AsyncStorage.multiRemove(keys) : Promise.resolve(false));
   }
 
+  /**
+  * Map an object with non numerical keys to an array
+  * @param obj {object} Object representing a list
+  * @return {array}
+  */
   mapToNumericalKeys(obj){
     return Object.keys(obj).map(key => obj[key]);
   }
 
+  /**
+  * Remove key and value from local AsyncStorage
+  * @param key {string} Key to remove
+  * @return {Promise}
+  */
   removeLocal(key){
     return AsyncStorage.removeItem(this.getName(key));
   }
 
+  /**
+  * Log data to the console
+  * @param d {mixed} data to log
+  * @return {mixed}
+  */
   log(d){
     console.log(d);
     return d;
   }
 
+  /**
+  * Check if the current user is logged in.
+  * @return {Promise}
+  */
   isLoggedIn(){
     return this.getItem('auth', false, 'User');
   }
 
+  /**
+  * Set the "state" of the model, and store that something has changed.
+  * @param key {string} Key
+  * @param value {mixed} Value for the key
+  * @return {Promise}
+  */
   setState(key, value){
     let _this = this;
     return this.getItem('changes', {}).then((changes) => {
@@ -244,7 +345,14 @@ class Model {
     });
   }
 
-
+  /**
+  * Check if the value of some variables in the local storage have changed
+  * @param list {object|array} Of objects
+  * @param searchPath {string} Path inside the object E.g.: '{}.{}.name' to get the name of an object inside an object in the list.
+  * @param setPath {string} The path inside the object from searchPath, that should be changed. E.g. '-' In the current Object, '--' in the parent object.
+  * @param valueCallback {function} To be executed for every element found in setPath
+  * @return {Promise}
+  */
   mayApplyLocalChanges(list, searchPath, setPath, valueCallback){
     let count = 0;
     return this.getItem('changes', false).then((changes) => {
@@ -269,30 +377,6 @@ class Model {
         return this.setItem('changes', false).then(() => list);
       });
     });
-    /*return this.getItem('changes', false).then((changes) => {
-      //console.log('CHANGES', changes, list);
-      if(!changes || !list || !Object.keys(changes).length) return false;
-      let promises = [];
-      Object.keys(list).map((key) => {
-        let name = list[key][property];
-        if(changes[name]) {
-          console.log(list[key][property]);
-          promises.push(this.getItem(changes[name]).then((value) => {
-            list[key] = value;
-            console.log(value);
-            delete changes[name];
-            return this.setItem('changes', changes);
-          }));
-        }
-      });
-      if(promises.length) {
-        return Promise.all(promises).then(() => {
-          //console.log(list);
-          return list;
-        });
-      }
-      return false;
-    });*/
   }
 }
 

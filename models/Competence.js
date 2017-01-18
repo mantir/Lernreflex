@@ -2,6 +2,14 @@
 import Model from 'Lernreflex/models/Model';
 import {LearningTemplate, Course, Activity, User, lib} from 'Lernreflex/imports'
 
+/**
+ * Represents a competence/goal. (Model) The difference between a competence and a goal is, that
+ * a goal is a competence, that was not reached yet.
+ * @extends Model
+ * @constructor
+ * @param {bool} caching - If data can be fetched from cache.
+ */
+
 class Competence extends Model{
 
   constructor(caching = true){
@@ -9,12 +17,14 @@ class Competence extends Model{
     this.urls = {
       competences: ''
     }
+    /** Scales for the self assessment */
     this.scales = {
       progress: {unit:'%', values:['0', '10', '20','30','40','50','60','70','80','90','100']},
       time: {unit:'Min', values:['0 - 10', '10 - 20', '20 - 30', '30 - 60', '60 - 120', '120 - 180', '> 180']},
       interest: {unit:'', values:['Sehr klein', 'Klein', 'Mittel', 'Groß', 'Sehr groß']}
     };
 
+    /** Stub for a competence */
     this.definition = {
       operator: '*',
       forCompetence: '*',
@@ -26,6 +36,10 @@ class Competence extends Model{
     this.setApi(1);
   }
 
+  /**
+  * Save a competence object to the API
+  * @param obj {object} A competence object that has everything defined in the definition
+  */
   save(obj){
     var key = obj.isGoal ? 'goals' : 'competences';
     obj = this.checkDefinition(obj);
@@ -39,22 +53,39 @@ class Competence extends Model{
     }
   }
 
+  /**
+  * Return the ID of a competence object
+  * @param obj {object} competence
+  * @return {string}
+  */
   generateID(obj){
     return obj.forCompetence;
   }
 
-  getOverview(type = 'comptences'){ //faster to get learnigntemplates and courses and competences
+  /**
+  * Get the overview of competences and goals for a user from the API
+  * @return {Promise}
+  */
+  getOverview(type = 'competences'){ //faster to get learnigntemplates and courses and competences
     let user = new User();
     return user.isLoggedIn().then((u) => {
       return this.get('users/'+u.username+'/overview');
     });
   }
 
+  /**
+  * Get the goals for a user from the API
+  * @return {Promise}
+  */
   getGoals(){
     return this.getCompetences('goals');
     //return this.getItem('goals', {}).then(this.mapToNumericalKeys);
   }
 
+  /**
+  * Get the competences for a user from the API
+  * @return {Promise}
+  */
   getCompetences(type = 'competences'){
     let learningTemplate = new LearningTemplate();
     let user = new User();
@@ -89,6 +120,11 @@ class Competence extends Model{
   });
 }
 
+/**
+* Count competences
+* @param competences {object} Object containing lists of competences
+* @return {int} summed number of competences from all lists
+*/
 countCompetences(competences){
   let count = 0;
   for(var category in competences) {
@@ -97,6 +133,14 @@ countCompetences(competences){
   return count;
 }
 
+/**
+* Check if the number of goals has changed after loading from the server,
+* to see if the user reached a new goal.
+* @param allCompetences {object} Object containing lists of competences retrieved from the API
+* @param user {object} Object containing username
+* @param type {string} goals or competences (not used yet)
+* @return {Promise}
+*/
 checkHasNewGoalReached(allCompetences, user, type){
   let itemName = 'allCompetences';
   console.log(allCompetences);
@@ -118,6 +162,13 @@ checkHasNewGoalReached(allCompetences, user, type){
   });
 }
 
+/**
+* Joins the goals and competences from the API with the progress of the user
+* from the API
+* @param together {object} Competences from the API
+* @param progress {object} Progress from the API
+* @return {object} Competences with progress attached
+*/
 joinProgressAndCompetences(together, progress){
   Object.keys(together).map((key) => {
     let comps = together[key];
@@ -135,6 +186,12 @@ joinProgressAndCompetences(together, progress){
   return together;
 }
 
+/**
+* Filters goals OR competences from a list of both
+* @param competences {object} list of competences from the API
+* @param type {string} goals OR competences
+* @param user {object} Object containing the username
+*/
 filterType(competences, type = 'competences', user){ //Filter if learning goal is reached or not
   //console.log(competences);
   let filtered = {};
@@ -150,6 +207,13 @@ filterType(competences, type = 'competences', user){ //Filter if learning goal i
   return filtered;
 }
 
+/**
+* Check if a user has a comment to an activity of a competence from another user,
+* to see if the competence is done.
+* @param competence {object} competence with progress
+* @param username {string}
+* @return {bool}
+*/
 hasCommentFromOtherUser(competence, username){
   if(competence.progress && competence.progress.evidences) {
     for(var i in competence.progress.evidences) {
@@ -162,6 +226,11 @@ hasCommentFromOtherUser(competence, username){
   return false;
 }
 
+/**
+* Get the progress for all the competences of a user.
+* @param username {string}
+* @return {Promise}
+*/
 getProgress(username){
   let user = new User();
   let callback = (d) => {
@@ -181,6 +250,11 @@ getProgress(username){
   })
 }
 
+/**
+* Converts a progress object from the API for the use in the app
+* @param p {object} progress from the API
+* @return {object}
+*/
 progressToView(p){
   let pro = {
     name: p.competence,
@@ -200,6 +274,11 @@ progressToView(p){
   return pro;
 }
 
+/**
+* Get the questions for a competence
+* @param competenceId {string} Id of the competence
+* @return {Promise}
+*/
 getQuestions(competenceId){
   let caching = this.caching;
   this.caching = false;
@@ -211,6 +290,11 @@ getQuestions(competenceId){
   })
 }
 
+/**
+* Saves changes made to the progress (Time or progress changed) of a competence
+* @param p {object} Progress to save to the API
+* @return {Promise}
+*/
 saveProgress(p){
   let progress = {
     userCompetenceProgressList: [{
@@ -234,6 +318,12 @@ saveProgress(p){
   })
 }
 
+/**
+* Changes the format of the answers from the API for use in the app
+* @param competenceData {object} Competence object with progress with answers
+* @param questions {object} List of questions from the server
+* @return {object}
+*/
 answersToView(competenceData, questions){
   let answersQ = {};
   let answers = {};
@@ -258,6 +348,12 @@ answersToView(competenceData, questions){
   return answers;
 }
 
+/**
+* Saves answers to the API
+* @param competenceData {object} Competence data
+* @param answers {array} List of answers
+* @return {Promise}
+*/
 saveAnswers(competenceData, answers){
   //console.log(competenceData, answers);
   let user = new User();
@@ -281,12 +377,11 @@ saveAnswers(competenceData, answers){
 });
 }
 
-/*
-* Sucht Kompetenzen aus Daten und überprüft
-* ob und wie die Über- oder Unterkompetenzrelation zu anderen Kompetenzen ist
-* @param result: array of arrays
-* @param key: index für momentan zu füllendes array in result
-* @param d: daten, die geparst werden sollen
+/**
+* Parses competences from the server and checks if competences are subcompetences
+* of other competences
+* @param d {object} Data that should be parsed
+* @return {object}
 */
 parseFromTree(d){
   var _this = this;
@@ -307,8 +402,12 @@ parseFromTree(d){
   });
   return d;
 }
-/*
+
+/**
 * Get an array of all subCompetences as keys
+* @param d {array}
+* @param subs {object}
+* @return {object}
 */
 treeSubCompetences(d, subs){
   var _this = this;
@@ -321,8 +420,11 @@ treeSubCompetences(d, subs){
   return subs;
 }
 
-/*
-* Returns a mapping from a data competence object to display in the view
+/**
+* Returns a mapping or a list of mappings from a data competence object for use in the app
+* @param comp {object} competence object or list of competence objects from the API
+* @param type {string} goals OR competences
+* @return {object}
 */
 toView(comp, type){
   var f = (comp, type) => {
@@ -346,6 +448,11 @@ toView(comp, type){
   return f(comp, type);
 }
 
+/**
+* Change competence string from moodle-plugin-plural-format to Ich-Format
+* @param name {string} Competence string
+* @return {string}
+*/
 toIch(name){
   let die = name.startsWith('Die S.');
   if(name.startsWith('S.') || die) {
@@ -366,6 +473,12 @@ toIch(name){
   return name;
 }
 
+/**
+* Get the sub competences of a competence from the API
+* @param rootCompetence {object} The competenceId
+* @param courseId {string} [university]
+* @return  {Promise}
+*/
 getSubCompetences(rootCompetence, courseId = 'university'){
   var _this = this;
   return this.get('competences/', {rootCompetence: rootCompetence, courseId:courseId, asTree: true}).then((d) => {
@@ -376,78 +489,3 @@ getSubCompetences(rootCompetence, courseId = 'university'){
 }
 
 module.exports = Competence;
-
-//getCompetences as single requests: very slow, better is overview
-//return this.getItem('competences', {}).then(this.mapToNumericalKeys);
-/*var learningTemplate = new LearningTemplate(this.caching);
-var course = new Course(this.caching);
-var _this = this;
-var doneCounter = 0;
-var resultTemplates = {}, orderedTemplates = {};
-var resultCourses = {}, orderedCourses = {};
-return new Promise((resolve, reject) => {
-console.log('getCompetences');
-Promise.all([ //LearningTemplates, Kurse und zugehörige Kompetenzen holen
-learningTemplate.getLearningTemplates()
-.then((templates) => {
-//console.log('TEMPLATES:', templates);
-var counter = 0;
-templates = templates.data;
-if(!templates) {
-return [];
-}
-var promises = [];
-templates.map((template) => {
-var already = {};
-promises.push(_this.get('competences/', {courseId:'university', asTree:true, learningTemplate: template}).then((d) => {
-counter++;
-d = _this.parseFromTree(d);
-if(d.length) {
-resultTemplates[template] = d;
-}
-if(counter == templates.length){
-templates.filter((t) => orderedTemplates[t] = resultTemplates[t])
-}
-}));
-}
-)
-return Promise.all(promises);
-}, () => reject()),
-course.getCourses()
-.then((courses) => {
-var counter = 0;
-var promises = [];
-if(!Array.isArray(courses) || !Object.keys(courses).length) {
-return [];
-}
-courses.map((course) => {
-var already = {};
-promises.push(_this.get('competences/', {courseId:course.courseid, asTree:true}).then((d) => {
-counter++;
-d = _this.parseFromTree(d);
-if(d.length) {
-d = d.map((e) => {
-e.inCourse = true;
-e.courseId = course.courseid;
-return e;
-});
-resultCourses[course.name] = d;
-}
-if(counter == courses.length){
-courses.filter((t) => orderedCourses[t.name] = resultCourses[t.name])
-}
-}));
-});
-return Promise.all(promises);
-}, () => reject())])
-.then((learningTemplates, courses) => {
-let together = Object.assign(orderedCourses, orderedTemplates);
-_this.getProgress().then((progress) => {
-together = this.joinProgressAndCompetences(together, progress);
-let user = new User();
-user.isLoggedIn().then((u) => {
-resolve(this.filterType(together, type, u));
-});
-});
-});
-});*/

@@ -13,6 +13,13 @@ import {
 } from 'react-native';
 import {styles, Router, User, lib, Activity, Competence, Course, Loader, SelectList} from 'Lernreflex/imports';
 
+/**
+ * Represents the view for an admin. This is a fallback view to create competences
+ * and to link moodle activities and questions to them.
+ * Please use moodle to create and link competences and activities.
+ * @extends React.Component
+ * @constructor
+ */
 
 class Admin extends Component{
 

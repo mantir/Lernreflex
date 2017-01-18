@@ -13,6 +13,11 @@ import {
 } from 'react-native';
 import {styles, Router, User, CompetenceList, CompetenceView, ActivityView, ListEntryCompetence, Loader, Icon} from 'Lernreflex/imports';
 
+/**
+ * Represents the view for the list of users sharing a competence
+ * @extends React.Component
+ * @constructor
+ */
 
 class UserList extends Component{
 
@@ -55,6 +60,10 @@ class UserList extends Component{
     })
   }
 
+  /**
+  * Load users for course passed by props.competenceData.courseId
+  * @param caching {bool} If users can be loaded from cache
+  */
   loadData(caching = true){
     let user = new User(caching);
     let _this = this;
@@ -75,6 +84,10 @@ class UserList extends Component{
     });
   }
 
+  /**
+  * Executed if a user is selected
+  * @param rowData {object} user data
+  */
   rowPressed(rowData) {
     let route = {...this.props.previousRoute};
     //console.log(this.props.previousRoute);
@@ -92,6 +105,10 @@ class UserList extends Component{
       //Router.route(route, this.props.navigator, {replacePrevious:true});
     })
   }
+
+  /**
+  * Render user at the top, if different from the current
+  */
   renderUser(){
       return <ListEntryCompetence
         type="currentUser"
@@ -100,6 +117,11 @@ class UserList extends Component{
         rowData={this.state.currentUser} />
     }
 
+
+    /**
+    * Render a user in the list.
+    * @param rowData {object} user data
+    */
   renderRow(rowData){
     //if(rowData == 'loader') return null;
     if(rowData.name == 'currentUser') return this.renderUser();
@@ -111,10 +133,16 @@ class UserList extends Component{
       rowData={rowData} />
   }
 
+  /**
+  * Executed on pull to refresh
+  */
   _onRefresh(){
     this.loadData(false);
   }
 
+  /**
+  * Render the list view
+  */
   render(){
     return <View style={styles.wrapper}>
       <ListView

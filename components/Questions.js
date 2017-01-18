@@ -27,6 +27,11 @@ import {
   ListEntryCompetence
 } from 'Lernreflex/imports';
 
+/**
+ * Represents the view for the reflective questions for a competence.
+ * @extends SuperComponent
+ * @constructor
+ */
 
 class Questions extends SuperComponent{
 
@@ -57,6 +62,10 @@ class Questions extends SuperComponent{
     this.setQuestions();
   }
 
+  /**
+  * Get the numbers of questions the user has answered for a competence + 1.
+  * @return {int}
+  */
   getMaxAnswers(){
     let oneNot = false;
     let answers = this.state.answers;
@@ -67,6 +76,9 @@ class Questions extends SuperComponent{
     }).length;
   }
 
+  /**
+  * Set the questions for the view by the props
+  */
   setQuestions(){
     let questions = this.state.questions = this.props.questions;
     let answers = this.state.answers = this.props.answers;
@@ -89,15 +101,10 @@ class Questions extends SuperComponent{
     })
   }
 
-  loadData(){
-    let user = new User();
-    let _this = this;
-    /*this.getAnswers().then((d) => {
-    _this.setState({dataSource: _this.state.dataSource.cloneWithRows(d)});
-    console.log('USERS:', d);
-    });*/
-  }
-
+  /**
+  * Save the answers to a question
+  * @param q {string} question ID
+  */
   saveAnswers(q){
     let c = new Competence();
     let answers = [];
@@ -123,7 +130,10 @@ class Questions extends SuperComponent{
 
   }
 
-  // Scroll a component into view. Just pass the component ref string.
+  /**
+  * Scroll a component into view.
+  * @param refName {string} the component ref string.
+  */
   inputFocused (refName) {
     //console.log(refName, this.refs[refName], this.refs);
     //setTimeout(() => {
@@ -139,18 +149,25 @@ class Questions extends SuperComponent{
     //}, 1);
   }
 
+  /**
+  * Render current user at the top, if different from the current one
+  */
   renderUser(){
     if(this.state.currentUser){
       return <ListEntryCompetence
         type="currentUser"
         underlayColor={styles._.primary}
-        onPress={() => this.showUsers()}
+        onPress={() => {this.showUsers()}}
         rowData={this.state.currentUser}
         />
     }
     return null;
   }
 
+  /**
+  * Render the competence title
+  * @return {ReactNative.View}
+  */
   renderCompetence(){
     //console.log(this.props.competenceData);
     return <View style={{backgroundColor:'#FFF'}}>
@@ -158,6 +175,9 @@ class Questions extends SuperComponent{
     </View>
   }
 
+  /**
+  * Set the focus to the current answer input field
+  */
   setCurrentFocus(){
     let fun = () => {
       if(this.refs.currentAnswer) {
@@ -168,6 +188,11 @@ class Questions extends SuperComponent{
     fun();
   }
 
+  /**
+  * Change the view from a list of questions to the single question/answer view, and vice versa
+  * @param mode {int} 0 or 1, 1 is the mode for answering questions one by one, 0 shows a list
+  * @param currentRow {int} The current question index
+  */
   changeMode(mode, currentRow){
     if(mode == 1) { //In den Beantwortenmodus gehen
       //console.log(currentRow, this.state.questions);
@@ -187,10 +212,18 @@ class Questions extends SuperComponent{
     }
   }
 
+  /**
+  * Check if a question was answered
+  * @param top {int} top margin for the loader
+  */
   wasAnswered(q){
     return this.state.answers[q] && this.state.answers[q].trim();
   }
 
+  /**
+  * Navigate to next or previous question
+  * @param dir {string} previous or next
+  */
   changeQuestion(dir){
     let newRow = this.state.currentRow;
     let changedAnswer = this.state.changedAnswer;
@@ -213,6 +246,10 @@ class Questions extends SuperComponent{
     this.setCurrentFocus();
   }
 
+  /**
+  * Render the current question in answering mode
+  * @param rowData {object} question data
+  */
   renderCurrentRow(rowData){
     if(rowData.index != this.state.currentRow) return null;
     let ref = 'currentAnswer';
@@ -270,6 +307,10 @@ class Questions extends SuperComponent{
     </View>
   }
 
+  /**
+  * Render question in list view
+  * @param rowData {object} question data
+  */
   renderRow(rowData){
     if(rowData.text == 'saveButton') {
       return this.renderSaveButton();
@@ -325,6 +366,9 @@ class Questions extends SuperComponent{
     </ComponentType>
   }
 
+  /**
+  * Render the view of the reflection questions of a competence
+  */
   render(){
     //let style = this.state.currentRow > -1 ? {backgroundColor:styles._.primary} : {};
     let style = {backgroundColor:styles._.primary};

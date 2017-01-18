@@ -12,6 +12,11 @@ import {
 } from 'react-native';
 import {styles, Router, User, Admin, CompetenceList, Loader} from 'Lernreflex/imports';
 
+/**
+ * Represents the view for the menu.
+ * @extends React.Component
+ * @constructor
+ */
 
 class Menu extends Component{
 
@@ -47,6 +52,9 @@ class Menu extends Component{
 
   }
 
+  /**
+  * Executed when menu entry is pressed
+  */
   rowPressed(rowData) {
     if(rowData.route.id === 'user.logout'){
       this.user.logout().then(this.props.onLogout);
@@ -55,8 +63,12 @@ class Menu extends Component{
     }
   }
 
+  /**
+  * Renders menu entry
+  * @return {ReactNative.TouchableHighlight}
+  */
   renderRow(rowData){
-    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.rowPressed(rowData)} style={styles.list.li}>
+    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => { this.rowPressed(rowData) }} style={styles.list.li}>
       <View>
         <View style={styles.list.rowContainer}>
           <View style={styles.list.textContainer}>
@@ -70,6 +82,10 @@ class Menu extends Component{
     </TouchableHighlight>
   }
 
+  /**
+  * Render the whole menu
+  * @return {ReactNative.View}
+  */
   render(){
     return <View style={styles.wrapper}>
       <ListView

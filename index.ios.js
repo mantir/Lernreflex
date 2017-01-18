@@ -24,6 +24,12 @@ import UserLogin from 'Lernreflex/components/UserLogin';
 import {styles, Router, CompetenceList, CompetenceCreate, User, Test, Icon} from 'Lernreflex/imports';
 import UITest from 'Lernreflex/tests/UITest'
 
+/**
+ * Starting point for view for Lernreflex for iOS
+ * @extends React.Component
+ * @constructor
+ */
+
 class Lernreflex extends Component {
   constructor(){
     super();

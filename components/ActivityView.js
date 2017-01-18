@@ -10,7 +10,8 @@ import ReactNative, {
   NavigatorIOS,
   Platform,
   TextInput,
-  Slider
+  Slider,
+  Image
 } from 'react-native';
 import {
   styles,
@@ -26,6 +27,12 @@ import {
 import Dimensions from 'Dimensions';
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import dismissKeyboard from 'dismissKeyboard'
+
+/**
+ * Represents the view for an activity.
+ * @extends React.Component
+ * @constructor
+ */
 
 class ActivityView extends Component{
 
@@ -48,21 +55,35 @@ class ActivityView extends Component{
     this.updateState = this.updateState.bind(this);
   }
 
+  /**
+  * Override setState from parent to avoid setting the state when the component is not mounted.
+  * @param input {object} A state object
+  */
   setState(input){
     if(!this.unmounting){
       super.setState(input);
     }
   }
 
+  /**
+  * Store that the component will unmount, so that the component can't set its state anymore.
+  */
   componentWillUnmount(){
     this.unmounting = true;
   }
 
+  /**
+  * Initialization
+  */
   componentDidMount(param = 'nothing'){
     this.unmounting = false;
     this.updateState();
   }
 
+  /**
+  * Executed when this component receives new props. E.g. when the user to view the activity for, changes.
+  * @param nextProps {object} The properties which will change
+  */
   componentWillReceiveProps(nextProps){
     let user = new User();
     let comp = new Competence(false);
@@ -92,6 +113,10 @@ class ActivityView extends Component{
     });
   }
 
+  /**
+  * Update the state of this component from new props
+  * @param nextProps {object} New props
+  */
   updateState(nextProps){
     let props = !nextProps ? this.props : nextProps;
 
@@ -108,37 +133,28 @@ class ActivityView extends Component{
     });
   }
 
-  rowPressed(rowData) {
-    if(rowData.type == 'activity'){
-      Router.route({
-        title: 'Lernziel',
-        id: 'goal',
-        component: ActivityView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
-    } else if(rowData.type == 'activity'){
-      Router.route({
-        title: 'Aktivität',
-        id: 'activity',
-        component: ActivityView,
-        passProps: {data: rowData}
-      }, this.props.navigator);
-    }
-  }
-
+  /**
+  * Render comment row from ListEntryCompetence component
+  * @param rowData {object} An activity object
+  * @return {ListEntryCompetence}
+  */
   renderRow(rowData){
     return <ListEntryCompetence type="comment" rowData={rowData} />
   }
 
-  renderAuthor(){
-
-  }
-
+  /**
+  * Render headline for comments
+  * @return {ReactNative.Text}
+  */
   _renderHeadline(){
     let headline = {key:'comments', name: 'Kommentare', value:''};
     return <Text style={{color:styles._.secondary, marginLeft:10}}>{headline.name}</Text>
   }
 
+  /**
+  * Render comments and feedback input or loading indicator
+  * @return {array_of_React.Components|Loader}
+  */
   _renderTabContent(){
     var content = this.state.comments;
     var input = null, spacer = null;
@@ -169,7 +185,7 @@ class ActivityView extends Component{
       <View style={{flexDirection:'column', alignItems:'center', flex:0.2}}>
         <View style={{flexDirection:'row', alignItems:'flex-end', flex:1}}>
           <TouchableHighlight underlayColor='#FFF' onPress={() => this.addComment()} style={[styles.comp.addComment]}>
-            <Text style={[styles._.highlight, {color: this.state.comment.trim() ? styles._.secondary : '#EEE'}]}>
+            <Text style={[styles._.highlight, {color: this.state.comment.trim() && !this.state.sending ? styles._.secondary : '#EEE'}]}>
               Senden
             </Text>
           </TouchableHighlight>
@@ -187,8 +203,12 @@ class ActivityView extends Component{
     return [list, input, spacer];
   }
 
+  /**
+  * Add a comment from the input field to the comments
+  */
   addComment(){
     let user = new User();
+    this.setState({sending:true});
     user.isLoggedIn().then((u) => {
       var comment = {
         user: this.state.currentUser,
@@ -206,13 +226,18 @@ class ActivityView extends Component{
         let created = Date.now();
         this.state.commentsData.push({user:u.username, created:created, text:this.state.comment});
         this.setState({comments: this.state.comments.cloneWithRows(this.state.commentsData),
-          comment:''
+          comment:'',
+          sending: false
         });
       });
     });
     dismissKeyboard();
   }
 
+  /**
+  * Scroll to a component
+  * @param refName {string} ref name of the component
+  */
   _scrollToBottom(refName) {
     var _this = this;
     if(Platform.OS != 'ios') return;
@@ -226,28 +251,44 @@ class ActivityView extends Component{
     }, 1);
   }
 
+  /**
+  * Render the username at the top, if it's different than the current user.
+  * @return {ListEntryCompetence|null}
+  */
   renderUser(){
     if(this.state.currentUser){
       return <ListEntryCompetence
         type="currentUser"
         underlayColor={styles._.primary}
-        onPress={() => this.showUsers()}
+        onPress={() => {this.showUsers()}}
         rowData={this.state.currentUser} />
     }
     return null;
   }
 
-
+  /**
+  * Render the activity view
+  * @return {ReactNative.View}
+  */
   render(){
     var activity = this.props;
     var Comp = ScrollView;
     if(Platform.OS == 'ios') {
       Comp = InputScrollView;
     }
+    let isDone;
+    if(activity.done) isDone = <View style={[styles._.col, {alignSelf:'center', flex:0.1}]}>
+      <Image style={[{width: 20, height: 20}]} resizeMode='contain' source={require('Lernreflex/img/checked.png')}></Image>
+    </View>
     return <View style={{flex:1}}>
       <Comp keyboardShouldPersistTaps={true} style={[styles.wrapper, {overflow:'hidden'}]} ref="scroller">
         {this.renderUser()}
-        <Text style={[styles.comp.title]}>{activity.name}</Text>
+        <View style={styles._.row}>
+          <View style={[styles._.col, {flex:activity.done ? 0.9 : 1}]}>
+            <Text style={[styles.comp.title]}>{activity.name}</Text>
+          </View>
+          {isDone}
+        </View>
         <View style={styles._.row}>
           {this._renderHeadline()}
         </View>

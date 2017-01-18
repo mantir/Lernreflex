@@ -21,7 +21,13 @@ import {
   CompetenceList,
   InputScrollView
 } from 'Lernreflex/imports';
-/*Props need to contain a onLogin function which will be called after the login was successfull*/
+
+/**
+ * Represents the view for the initial login.
+ * The props need to contain a onLogin function which will be called after the login was successfull
+ * @extends React.Component
+ * @constructor
+ */
 
 class UserLogin extends Component{
   constructor(){
@@ -31,6 +37,9 @@ class UserLogin extends Component{
     this.tryLogin = this.tryLogin.bind(this);
   }
 
+  /**
+  * Try to login the user with the given credentials from the input.
+  */
   tryLogin(){
     var user = new User(false);
     var _this = this;
@@ -43,7 +52,7 @@ class UserLogin extends Component{
         if(!d){
           _this.setState({loggingIn:false, loggedIn:d});
           Alert.alert( 'Login fehlgeschlagen', 'Nutzer oder Passwort sind fehlerhaft.', [
-            {text: 'Ok', onPress: () => this.refs.username.focus()}, ]);
+            {text: 'Ok', onPress: () => {this.refs.username.focus()}}, ]);
           return false;
         }
         user.login(username, password).done(() => {
@@ -66,6 +75,9 @@ class UserLogin extends Component{
     super.setState(obj);
   }
 
+  /**
+  * Render the login button
+  */
   _renderLoginButton(){
       if (!this.state.loggingIn) {
         if(!this.state.loggedIn) {
@@ -80,6 +92,9 @@ class UserLogin extends Component{
       }
   }
 
+  /**
+  * Render the login view
+  */
   render(){
     var type = this.props.type;
     return <View style={styles.wrapper}>

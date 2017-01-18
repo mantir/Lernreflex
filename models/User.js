@@ -2,6 +2,13 @@
 import Model from 'Lernreflex/models/Model';
 import {lib} from 'Lernreflex/imports';
 
+/**
+ * Represents a user.
+ * @extends Model
+ * @constructor
+ * @param {bool} caching - If data can be fetched from cache.
+ */
+
 class User extends Model{
 
   constructor(caching = true){
@@ -19,6 +26,10 @@ class User extends Model{
     this.setApi(1);
   }
 
+  /**
+  * Save a user object to the API
+  * @param obj {object} A user object that has everything defined in the definition
+  */
   save(obj){
     obj = this.checkDefinition(obj);
     if(obj){
@@ -30,6 +41,12 @@ class User extends Model{
 
   }
 
+  /**
+  * Try to log in
+  * @param user {string} username
+  * @param password {string} password
+  * @return {Promise}
+  */
   tryLogin(user, password){
 
     //return new Promise((resolve, reject) => resolve("true"));
@@ -52,6 +69,12 @@ class User extends Model{
     }));
   }
 
+  /**
+  * Log the user in and trigger the sync with the API
+  * @param username {string} username
+  * @param password {string} password
+  * @return {Promise}
+  */
   login(username, password){
     if(username && password) {
       let user = {
@@ -72,14 +95,25 @@ class User extends Model{
     return Promise.resolve();
   }
 
+  /** Check if current user is logged in
+  * @return {Promise}
+  */
   isLoggedIn(){
     return this.getItem('auth', false);
   }
 
+  /**
+  * Log the current user out
+  * @return {Promise}
+  */
   logout() {
     return this.setItem('auth', false);
   }
 
+  /** Get the users of a course
+  * @param courseId {string} course Id
+  * @return {Promise}
+  */
   getUsers(courseId){
     let _this = this;
     return this.isLoggedIn().then((u) => _this.get('users', {userName:u.username, password:u.password})).then((d) => {
@@ -99,15 +133,27 @@ class User extends Model{
       });
     });
   }
-
+  /** Get the current user object
+  * @return {Promise}
+  */
   getCurrentUser(){
     return this.getItem('currentUser');
   }
 
+  /**
+  * Set the current user in local storage
+  * @param currentUser {object} containing username and password
+  * @return {Promise}
+  */
   setCurrentUser(currentUser){
     return this.setItem('currentUser', currentUser);
   }
 
+  /** Check if two users are different
+  * @param u1 {object|string} user 1
+  * @param u2 {object|string} user 2
+  * @return {bool}
+  */
   different(u1, u2){
     return !u1 != !u2 || (u1 && u2 && u1.username != u2.username);
   }

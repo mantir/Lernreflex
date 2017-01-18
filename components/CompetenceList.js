@@ -18,6 +18,13 @@ import CourseView from 'Lernreflex/components/CourseView';
 import ListEntryCompetence from 'Lernreflex/components/ListEntryCompetence';
 import {Router, styles, Competence, Loader, CompetenceCreate, UserList, Icon} from 'Lernreflex/imports';
 
+/**
+* Represents the view for a list of competences. If the type = "competences" is passed
+* as a prop, the list contains users competences. If type = "goals" is passed as a prop,
+* the list contains users goals.
+* @extends React.Component
+* @constructor
+*/
 
 class CompetenceList extends Component{
 
@@ -48,7 +55,7 @@ class CompetenceList extends Component{
       [Router.icons.community]
     ];
     Icon.getImageSource(Router.icons.community, 30)
-      .then((source) => this.setState({ communityIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
+    .then((source) => this.setState({ communityIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
   }
 
   componentDidMount(){
@@ -57,22 +64,35 @@ class CompetenceList extends Component{
     this.loadData();
   }
 
+
+  /**
+  * Reaload competence after a new competence was created
+  */
   afterCompetenceCreate(){
     this.loadData(false);
   }
 
+
+  /**
+  * Executed when the component receives new props
+  */
   componentWillReceiveProps(){
     let competence = new Competence();
     let type = this.props.type == 'competences' ? 'reloadCompetences' : 'reloadGoals';
-    competence.getItem(type, false).then((value) => {
-      if(value) {
-        this.loadData(false);
-        competence.setItem(type, false);
-      }
-    })
-    console.log('CompetenceList componentWillReceiveProps');
+    setTimeout(() => {
+      competence.getItem(type, false).then((value) => {
+        if(value) {
+          this.loadData(false, true);
+          competence.setItem(type, false);
+        }
+      })
+    }, 10)
+    //console.log('CompetenceList componentWillReceiveProps');
   }
 
+  /**
+  * Updates the list if the progress of competence was changed
+  */
   updateChanges(){
     let comp = new Competence();
     let competences = this.state.competences;
@@ -85,14 +105,6 @@ class CompetenceList extends Component{
       } else return;
       _this.setState({competences:comps, dataSource: _this.getDatasource(comps)});
     });
-
-    /*if(promises.length) {
-      Promise.all(promises).then(() => {
-        //console.log('AFTER', competences);
-
-      }).then(() => counter > 0 ? this.loadData(false) : null);
-    }
-    */
   }
 
   componentWillUnmount(){
@@ -105,7 +117,7 @@ class CompetenceList extends Component{
     }
   }
 
-  /*
+  /**
   * Converts the returned data into displayable data
   */
   competencesToView(comps, notAsTree){
@@ -135,11 +147,17 @@ class CompetenceList extends Component{
     return {dataBlob, sectionIDs, rowIDs};
   }
 
+  /**
+  * Get the data formatted for the list view datasource
+  */
   getDatasource(competences){
     let {dataBlob, sectionIDs, rowIDs} = this.competencesToView(competences);
     return this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs);
   }
 
+  /**
+  * Display message if there are no competences/goals
+  */
   emptyList(){
     let textCompetences = 'Erledige ein paar Lernziele, indem du in einem eigenen Lernziel deinen Fortschritt mit 100% einschätzt oder indem dir ein Mitlerner Feedback zu einer erledigten Aktivität in einem Lernziel eines Kurses gibt.';
     let text = 'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'erreichten Lernziele.') + '\n';
@@ -153,7 +171,12 @@ class CompetenceList extends Component{
     });
   }
 
-  loadData(caching = true){
+  /**
+  * Load the data from the API
+  * @param caching {bool} If the data can be fetched from cache
+  * @param receivingProps {bool} If action was triggered by receiving props
+  */
+  loadData(caching = true, receivingProps = false){
     console.log(this.props);
 
     var _this = this;
@@ -179,38 +202,43 @@ class CompetenceList extends Component{
         _this.props.updateBadge(competence.newGoalsReached, 'competences');
       }
       if(_this.props.type == 'competences')
-        _this.props.updateBadge(0, 'competences');
-      if(_this.props.type == 'competences')
-       competence.setItem('reloadGoals', true);
-      else competence.setItem('reloadCompetences', true);
+      _this.props.updateBadge(0, 'competences');
+      if(_this.props.type == 'competences' && !caching && !receivingProps)
+      competence.setItem('reloadGoals', true);
+      else if(_this.props.type == 'goals' && !caching && !receivingProps)
+      competence.setItem('reloadCompetences', true);
     });
-  /*  if(type === 'goals') {
-      competence.getGoals().done((goals) => {
-        console.log(goals);
-        if(Object.keys(goals).length){
-          _this.setState({
-            dataSource: _this.getDatasource(goals),
-            loaded: true,
-            refreshing: false,
-            competences: goals
-          });
-        } else this.emptyList();
-      });
+    /*  if(type === 'goals') {
+    competence.getGoals().done((goals) => {
+    console.log(goals);
+    if(Object.keys(goals).length){
+    _this.setState({
+    dataSource: _this.getDatasource(goals),
+    loaded: true,
+    refreshing: false,
+    competences: goals
+    });
+    } else this.emptyList();
+    });
     } else {
-      competence.getCompetences().done((competences) => {
-        console.log(competences);
-        if(Object.keys(competences).length){
-          _this.setState({
-            dataSource: _this.getDatasource(competences),
-            loaded: true,
-            refreshing: false,
-            competences: competences
-          });
-        } else this.emptyList();
-      });
+    competence.getCompetences().done((competences) => {
+    console.log(competences);
+    if(Object.keys(competences).length){
+    _this.setState({
+    dataSource: _this.getDatasource(competences),
+    loaded: true,
+    refreshing: false,
+    competences: competences
+    });
+    } else this.emptyList();
+    });
     }*/
   }
 
+  /**
+  * Executed when a competence/goal is pressed
+  * @param rowData {object} Competence data
+  */
   rowPressed(rowData) {
     if(rowData.type == 'competence'){
       rowData.updateChanges = this.updateChanges.bind(this);
@@ -219,7 +247,7 @@ class CompetenceList extends Component{
         title: 'Lernziel',
         id: this.props.type == 'goals' ? 'goal' : 'competence',
         rightButtonIcon: this.state.communityIcon,
-        onRightButtonPress: () => Router.route({
+        onRightButtonPress: () => {Router.route({
           id:'users',
           component: UserList,
           passProps: {
@@ -228,7 +256,7 @@ class CompetenceList extends Component{
             backTo:'competence',
             competenceData: rowData.competenceData
           }
-        }, this.props.navigator),
+        }, this.props.navigator)},
         component: CompetenceView,
         passProps: {...rowData}
       };
@@ -239,28 +267,44 @@ class CompetenceList extends Component{
       Router.route(route, this.props.navigator);
     } else if(rowData.type == 'course'){
       /*Router.route({
-        title: 'Gruppe',
-        id: 'group',
-        component: CourseView,
-        passProps: rowData
+      title: 'Gruppe',
+      id: 'group',
+      component: CourseView,
+      passProps: rowData
       }, this.props.navigator);*/
     }
     return true;
   }
 
+  /**
+  * Get the data for a certain section of the list view
+  * @param dataBlob {object}
+  * @param sectionID {string} section ID
+  */
   getSectionData(dataBlob, sectionID){
     return dataBlob[sectionID];
   }
 
+  /**
+  * Get the data for a certain row of the list view
+  * @param dataBlob {object}
+  * @param sectionID {string} section ID
+  * @param rowID {string} row ID
+  */
   getRowData(dataBlob, sectionID, rowID){
     return dataBlob[sectionID + ':' + rowID];
   }
 
+  /**
+  * Render the header of a section
+  * @param rowData {object}
+  * @param id {string} row ID
+  */
   renderSectionHeader(rowData, id){
     if(id == 'loader') return null;
     if(id == 'empty') return null;
     let cstyle = rowData.type == 'course' ? styles.list.liHead2 : styles.list.liHead;
-    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={cstyle}>
+    return <TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => {this.rowPressed(rowData)}} style={cstyle}>
       <View>
         <View style={styles.list.rowContainer}>
           <View style={styles.list.textContainer}>
@@ -277,25 +321,36 @@ class CompetenceList extends Component{
     </TouchableHighlight>
   }
 
+  /**
+  * Render a competence in a list
+  * @param rowData {object}
+  * @return {ListEntryCompetence}
+  */
   renderRow(rowData){
     console.log(rowData);
-      return <ListEntryCompetence
-        type='competence'
-        underlayColor={styles.list.liHover}
-        onPress={() => this.rowPressed(rowData)}
-        rowData={rowData}
-        style={styles.list.li} />
+    return <ListEntryCompetence
+      type='competence'
+      underlayColor={styles.list.liHover}
+      onPress={() => {this.rowPressed(rowData)}}
+      rowData={rowData}
+      style={styles.list.li} />
   }
 
+  /**
+  * Executed on pull to refresh to reload competences
+  */
   _onRefresh() {
     this.loadData(false);
   }
 
+  /**
+  * Render the list of the competences/goals
+  */
   render(){
     /*if(!this.state.loaded) {
-      return <ScrollView style={styles.wrapper}>
-        <Loader />
-      </ScrollView>
+    return <ScrollView style={styles.wrapper}>
+    <Loader />
+    </ScrollView>
     }*/
     return <View style={styles.wrapper}>
       <ListView
@@ -309,32 +364,32 @@ class CompetenceList extends Component{
     </View>
   }
 
-/*  testRoute(){
-    //alert(1);
-    var navigator = this.props.navigator;
-    setTimeout(() => {
-      //navigator.push()
-      Router.route({
-        title:'test',
-        id:'goals',
-        component:CompetenceCreate,
-      }, navigator);
-    }, 1000);
+  /*  testRoute(){
+  //alert(1);
+  var navigator = this.props.navigator;
+  setTimeout(() => {
+  //navigator.push()
+  Router.route({
+  title:'test',
+  id:'goals',
+  component:CompetenceCreate,
+  }, navigator);
+  }, 1000);
   }
 
   _renderTestButton(){
-    return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.testRoute()} style={{position:'absolute', top:200}}>
-      <View>
-        <View style={styles.list.rowContainer}>
-          <View style={styles.list.textContainer}>
-            <Text>
-              TestButton
-            </Text>
-          </View>
-        </View>
-        <View style={styles.list.separator} />
-      </View>
-    </TouchableHighlight>
+  return <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.testRoute()} style={{position:'absolute', top:200}}>
+  <View>
+  <View style={styles.list.rowContainer}>
+  <View style={styles.list.textContainer}>
+  <Text>
+  TestButton
+  </Text>
+  </View>
+  </View>
+  <View style={styles.list.separator} />
+  </View>
+  </TouchableHighlight>
   }*/
 }
 

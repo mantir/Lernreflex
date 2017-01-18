@@ -11,6 +11,7 @@ import {
   Platform,
   Slider
 } from 'react-native';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import {
   styles,
   Router,
@@ -26,6 +27,12 @@ import {
   Questions,
   ListEntryCompetence
 } from 'Lernreflex/imports';
+
+/**
+* Represents the view for a competence/goal.
+* @extends React.Component
+* @constructor
+*/
 
 class CompetenceView extends Component{
 
@@ -69,10 +76,18 @@ class CompetenceView extends Component{
     }
   }
 
+  /**
+  * Executed when the component receives props
+  * @param nextProps {object}
+  */
   componentWillReceiveProps(nextProps){
     this.loadUser(nextProps);
   }
 
+  /**
+  * Load the competence for a certain user. Executed when receiving props.
+  * @param nextProps {object} Props that are passed to this component
+  */
   loadUser(nextProps){
     let user = new User();
     let comp = new Competence(false);
@@ -104,6 +119,10 @@ class CompetenceView extends Component{
     this.loadData();
   }
 
+  /**
+  * Update the state depending on the new props received
+  * @param props {object}
+  */
   updateState(props){
     props = props ? props : this.props;
     let fun = (questions) => {
@@ -130,11 +149,14 @@ class CompetenceView extends Component{
       });
     }
     if(!this.state.questions || !this.state.questions.length)
-      this.Competence.getQuestions(props.competence).then(fun);
+    this.Competence.getQuestions(props.competence).then(fun);
     else
-      fun(this.state.questions);
+    fun(this.state.questions);
   }
 
+  /**
+  * Load competence data, activities, questions and sub competences
+  */
   loadData(){
     var _this = this;
     let activity = new Activity();
@@ -164,12 +186,36 @@ class CompetenceView extends Component{
     });
   }
 
-    _renderAssessment(){
-      let btns = [
-        {key:'progress', name: 'Fortschritt', value:this.state.progress.progress},
-        {key:'time', name: 'Zeit', value: this.state.progress.time},
-        //{key:'interest', name: 'Interesse', value: this.state.progress.interest},
-      ];
+  /**
+  * Render the self assessment section for progress and time
+  */
+  _renderAssessment(){
+    let btns = [
+      {key:'progress', name: 'Fortschritt', value:this.state.progress.progress},
+      {key:'time', name: 'Zeit', value: this.state.progress.time},
+      //{key:'interest', name: 'Interesse', value: this.state.progress.interest},
+    ];
+    if(!this.state.currentUser) {
+      return <View style={[styles._.row, styles._.otherBG]}>
+        {btns.map(function(btn){
+          var style = [styles._.button, {backgroundColor:styles._.primary}];
+          var scale = this.Competence.scales[btn.key];
+          var color = styles._.primary;
+          if(btn.key === this.state.currentAssessment) {
+            style.push(styles._.buttonActive);
+          }
+          return <View key={btn.key} style={styles._.col}>
+            {this._wrapRow(<Text style={styles._.center}>{scale.values[btn.value]+scale.unit}</Text>)}
+            {this._wrapRow(<TouchableHighlight
+              underlayColor={color}
+              onPress={() => {this.setState({currentAssessment:btn.key, sliderValue: this.state.progress[btn.key]})}}
+              style={style}>
+              <Text style={styles._.buttonText}>{btn.name}</Text>
+            </TouchableHighlight>)}
+          </View>
+        }.bind(this))}
+      </View>
+    } else {
       return <View style={[styles._.row, styles._.otherBG]}>
         {btns.map(function(btn){
           var style = [styles._.button];
@@ -178,25 +224,43 @@ class CompetenceView extends Component{
           if(btn.key === this.state.currentAssessment && !this.state.currentUser) {
             style.push(styles._.buttonActive);
           }
-          return <View key={btn.key} style={styles._.col}>
-            {this._wrapRow(<Text style={styles._.center}>{scale.values[btn.value]+scale.unit}</Text>)}
-            {this._wrapRow(<TouchableHighlight
-              underlayColor={color}
-              onPress={() => this.setState({currentAssessment:btn.key, sliderValue: this.state.progress[btn.key]})}
-              style={style}>
-              <Text style={styles._.buttonText}>{btn.name}</Text>
-            </TouchableHighlight>)}
-          </View>
-        }.bind(this))}
-      </View>
+          let percent = (btn.value) / (scale.values.length - 1) * 100;
+          console.log(percent);
+          return <View key={btn.key} style={[styles._.col, {}]}>
+            <View style={{flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
+              <AnimatedCircularProgress
+                style={styles._.center}
+                size={120}
+                width={15}
+                fill={percent}
+                tintColor={styles._.primaryBrighter}
+                backgroundColor={styles._.primary}>{ () =>
+                  <Text style={styles.comp.circleText}>
+                    { scale.values[btn.value]+scale.unit }
+                  </Text>}
+                </AnimatedCircularProgress>
+              </View>
+              {this._wrapRow(<View>
+                <Text style={{color:styles._.primary, alignSelf:'center', padding:3}}>{btn.name}</Text>
+              </View>)}
+            </View>
+          }.bind(this))}
+        </View>
+      }
     }
 
+    /**
+    * Get the name for sub goal or sub competence
+    */
     subCompName(singular){
       if(singular)
       return this.props.isGoal ? 'Teilziel' : 'Teilkompetenz';
       return this.props.isGoal ? 'Teilziele' : 'Teilkompetenzen';
     }
 
+    /**
+    * Render the buttons for activities and sub subcompetences
+    */
     _renderTabs(){
       var subCompName = this.subCompName();
       let btns = [
@@ -216,13 +280,16 @@ class CompetenceView extends Component{
         return <TouchableHighlight
           underlayColor={styles.list.liHover}
           key={btn.key}
-          onPress={() => _this.setState({currentTab: btn.key})}
+          onPress={() => {_this.setState({currentTab: btn.key})}}
           style={style}>
           <Text style={style2}>{btn.name}</Text>
         </TouchableHighlight>
       });
     }
 
+    /**
+    * Wrap an element in row markup to have a clear layout.
+    */
     _wrapRow(content, colStyle, rowStyle){
       let st = [styles._.col];
       let str = [styles._.row];
@@ -242,6 +309,9 @@ class CompetenceView extends Component{
       </View>
     }
 
+    /**
+    * Render content of activity tab and subcompetences tab
+    */
     _renderTabContent(){
       var content = this.state[this.state.currentTab];
       var button = null;
@@ -258,7 +328,7 @@ class CompetenceView extends Component{
       if(this.state.currentTab == 'subcompetences'){
         button = <TouchableHighlight
           key='button'
-          onPress={() => Router.route(route, this.props.navigator)}
+          onPress={() => {Router.route(route, this.props.navigator)}}
           style={styles._.button}>
           <Text style={styles._.buttonText}>
             <Icon name={Router.icons.addRound} size={14} color='#FFF' />
@@ -275,6 +345,9 @@ class CompetenceView extends Component{
       return [list, button];
     }
 
+    /**
+    * Render the slider for self assessment of progress and time
+    */
     _renderSlider(){
       if(this.state.currentUser) return null;
       return this._wrapRow(<Slider
@@ -297,6 +370,9 @@ class CompetenceView extends Component{
         step={1}></Slider>, null, [styles._.otherBG, {paddingTop:0}])
       }
 
+      /**
+      * Update the progress when changed with the slider
+      */
       updateProgress(){
         let slider = this.refs.slider;
         let _this = this;
@@ -318,6 +394,9 @@ class CompetenceView extends Component{
         });
       }
 
+      /**
+      * Navigate to the reflective questions
+      */
       showQuestions(){
         //console.log(this.props.route);
         Router.route({
@@ -334,6 +413,9 @@ class CompetenceView extends Component{
         }, this.props.navigator);
       }
 
+      /**
+      * Executed when an activity or subsompetence is tapped
+      */
       rowPressed(rowData) {
         rowData.currentUser = this.state.currentUser;
         let route = {};
@@ -367,27 +449,37 @@ class CompetenceView extends Component{
         Router.route(route, this.props.navigator);
       }
 
+      /**
+      * Render an activity or subcompetence row
+      */
       renderRow(rowData){
-        return this._wrapRow(<ListEntryCompetence
-          type={rowData.type}
-          underlayColor={styles.list.liHover}
-          onPress={() => this.rowPressed(rowData)}
-          rowData={rowData}
-          style={[styles._.row, styles.list.withSeparator]} />);
-        }
-
+        return this._wrapRow(
+          <ListEntryCompetence
+            type={rowData.type}
+            underlayColor={styles.list.liHover}
+            onPress={() => {this.rowPressed(rowData)}}
+            rowData={rowData}
+            style={[styles._.row, styles.list.withSeparator]} />
+        );
+      }
+      /**
+      * Render the user at the top, if different from the current
+      */
       renderUser(){
         if(this.state.currentUser){
           return <ListEntryCompetence
             type="currentUser"
             underlayColor={styles._.primary}
-            onPress={() => this.showUsers()}
+            onPress={() => {this.showUsers()}}
             rowData={this.state.currentUser}
             />
         }
         return null;
       }
 
+      /**
+      * Render the competence view
+      */
       render(){
         var competence = this.props;
         var subCompName = competence.isGoal ? 'Teilziele' : 'Teilkompetenzen';
@@ -402,7 +494,7 @@ class CompetenceView extends Component{
           {this._renderSlider()}
 
           {this.state.loadedQuestions ? this._wrapRow(
-            <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.showQuestions()} style={[styles._.row, styles.list.withSeparator]}>
+            <TouchableHighlight underlayColor={styles.list.liHover} onPress={() => {this.showQuestions()}} style={[styles._.row, styles.list.withSeparator]}>
               <View style={styles._.col}>
                 <View style={styles.list.rowContainer}>
                   <View style={styles.list.textContainer}>
@@ -418,24 +510,12 @@ class CompetenceView extends Component{
             </TouchableHighlight>) : <Loader></Loader>
           }
 
-            <View style={styles._.row}>
-              {this._renderTabs()}
-            </View>
-            {this._renderTabContent()}
-          </ScrollView>
-        }
+          <View style={styles._.row}>
+            {this._renderTabs()}
+          </View>
+          {this._renderTabContent()}
+        </ScrollView>
       }
-      /*
-      <TouchableHighlight
-      onPress={() => Router.route({
-      id: this.props.type == 'goals' ? 'goal.add' : 'competence.add',
-      component: CompetenceCreate,
-      passProps:{
-      superCompetence: this.props.competence
-      }
-      }, this.props.navigator)}
-      style={styles.comp.addBtn}>
-      <Text style={styles._.buttonText}><Icon name="md-add" size={30} color={styles._.primary} /></Text>
-      </TouchableHighlight>*/
+    }
 
-      module.exports = CompetenceView;
+    module.exports = CompetenceView;

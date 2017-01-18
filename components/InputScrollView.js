@@ -9,6 +9,13 @@ import {
   dismissKeyboard
 } from 'react-native';
 
+/**
+ * Used in iOS to allow scrolling and tapping only once to change the input field.
+ * Can be used analogously to a ScrollView.
+ * @extends React.Component
+ * @constructor
+ */
+
 class InputScrollView extends React.Component {
 
   constructor(props, ctx) {

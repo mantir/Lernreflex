@@ -27,6 +27,12 @@ import {
   InputScrollView
 } from 'Lernreflex/imports';
 
+/**
+ * Represents the view to create a competence.
+ * @extends React.Component
+ * @constructor
+ */
+
 class CompetenceCreate extends Component{
   constructor(){
     super();
@@ -39,6 +45,9 @@ class CompetenceCreate extends Component{
     };
   }
 
+  /**
+  * Create the competence with the input data and store it to the API.
+  */
   createCompetence(){
     var competence = new Competence();
     var user = new User();
@@ -96,6 +105,10 @@ class CompetenceCreate extends Component{
     });
   }
 
+  /**
+  * Save the default reflection questions to the competence
+  * @param competenceId {string}
+  */
   saveQuestions(competenceId){
     let u = new User();
     let questions = lib.constants.generalCompetenceQuestions;
@@ -108,10 +121,6 @@ class CompetenceCreate extends Component{
         console.log(d);
       });
     }
-  }
-
-  createCourse(){
-
   }
 
   componentDidMount(){
@@ -129,11 +138,17 @@ class CompetenceCreate extends Component{
     super.setState(obj);
   }
 
+  /**
+  * Remove a tag
+  */
   removeTag(i){
     this.state.catchwords.splice(i, 1); //nicht mit delete entfernen, length wird sonst nicht verändert
     this.setState({catchwords:this.state.catchwords});
   }
 
+  /**
+  * Add a tag to the list from the input
+  */
   addTag(blurred){
     console.log('blurred');
     var tag = this.state.tag;
@@ -148,13 +163,18 @@ class CompetenceCreate extends Component{
     }.bind(this), 0);
   }
 
+  /**
+  * Render the tags
+  * @param tags {array} list of the tags
+  * @return {array_of_ReactNative.TouchableHighlight}
+  */
   _renderTags(tags){
     var rows = [];
 
     if(!tags.length)
     return null;
     for (var i in tags) {
-      rows.push(<TouchableHighlight onPress={() => this.removeTag(i)} key={i} style={styles.comp.tagItem}>
+      rows.push(<TouchableHighlight onPress={() => {this.removeTag(i)}} key={i} style={styles.comp.tagItem}>
       <Text style={styles.comp.tagItemText}>{tags[i]}</Text>
     </TouchableHighlight>);
   }
@@ -169,9 +189,13 @@ class CompetenceCreate extends Component{
   </View>
 }
 
+/**
+* Render the Create button
+* @return {ReactNative.View|ReactNative.TouchableHighlight}
+*/
 _renderButton(){
   if(!this.state.loading) {
-    return <TouchableHighlight underlayColor={styles._.hoverBtn} style={[styles._.button, styles._.col]} onPress={() => this.createCompetence()}>
+    return <TouchableHighlight underlayColor={styles._.hoverBtn} style={[styles._.button, styles._.col]} onPress={() => {this.createCompetence()}}>
       <Text style={[styles._.buttonText, styles._.big]}>Erstellen</Text>
     </TouchableHighlight>
   } else {
@@ -179,18 +203,30 @@ _renderButton(){
   }
 }
 
+/**
+* Render at the the title of the super competence, if the competence is created as a sub competence
+* @return {ReactNative.Text|null}
+*/
 _renderSuperCompetence(){
   if(!this.props.superCompetence)
   return null;
   return <Text style={styles.comp.superTitle}>{'Als Teil von: ' + this.props.superCompetence}</Text>
 }
 
+/**
+* Get the list of verbs
+* @return {array}
+*/
 getVerbs(){
   let verbs = lib.constants.verbs.map(lib.functions.ich);
   verbs.sort();
   return verbs;
 }
 
+/**
+* Scroll to a component
+* @param refName {string} ref name of the component
+*/
 _scrollToBottom(refName) {
   var _this = this;
   if(Platform.OS != 'ios') return;
@@ -205,6 +241,9 @@ _scrollToBottom(refName) {
 }
 
 
+/**
+* Executed when the select an action button is pressed
+*/
 selectPressed(){
   if(this.refs.title)
   this.refs.title.blur();
@@ -225,6 +264,10 @@ selectPressed(){
 }
 
 
+/**
+* Render the competence create view
+* @return {ReactNative.View}
+*/
 render(){
   var type = this.props.type;
   let group = this.state.group;
@@ -243,7 +286,7 @@ render(){
         <TouchableHighlight
           underlayColor={styles._.secondary}
           style={[styles._.col, {flex:0.8, marginRight:10}]}
-          onPress={() => this.selectPressed()}
+          onPress={() => {this.selectPressed()}}
           selectedValue={this.state.verb.split(' ... ')[0]}>
           <View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
             <Text style={{fontSize:18}}>
@@ -305,7 +348,7 @@ render(){
             defaultValue={group}
             maxLength={styles.max.competenceGroup}
             renderItem={({title}) => (
-              <TouchableOpacity onPress={() => this.setState({group: title})}>
+              <TouchableOpacity onPress={() => {this.setState({group: title})}}>
                 <Text style={styles.itemText}>
                   {title}
                 </Text>
