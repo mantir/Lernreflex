@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: models/Activity.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: models/Activity.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">'use strict'
+import Model from 'Lernreflex/models/Model';
+import {User} from 'Lernreflex/imports'
+
+/**
+ * Represents an activity (Model).
+ * @extends Model
+ * @constructor
+ * @param {bool} caching - If data can be fetched from cache.
+ */
+
+class Activity extends Model{
+
+  constructor(caching = true){
+    super('Activity', caching);
+    this.urls = {
+      activities: ''
+    };
+    this.evidenceParamName = 'user'; //Is added to an activity-URL to get user specific evidence
+    this.definition = {
+      name: '*',
+      url: '*',
+      icon: '*',
+      qtip: '*'
+    }
+    this.setApi(1);
+  }
+
+  /**
+  * Save an activity object to the API
+  * @param obj {object} An activity object that has everything defined in the definition
+  * @return {Promise}
+  */
+  save(obj){
+    obj.icon = '-';
+    obj.qtip = '-';
+    obj = this.checkDefinition(obj);
+    if(obj){
+      return this.put('activities', obj);
+    }
+  }
+
+  /**
+  * Get the comments of an activity from the progress object of a competence
+  * @param competenceProgress {object} A progress object of a competence
+  * @param activity {object} An activity object
+  * @return {array} Comments for the given activity
+  */
+  commentsToView(competenceProgress, activity){
+    //console.log(competenceProgress, activity);
+    let comments = [];
+    if(competenceProgress &amp;&amp; Array.isArray(competenceProgress.evidences)) {
+      for(var i in competenceProgress.evidences){
+        let l = competenceProgress.evidences[i];
+        if(l.evidenceUrl.indexOf(activity.url) > -1) {
+          comments = l.comments.sort((a, b) => a.created > b.created);
+          break;
+        }
+      }
+    }
+    return comments;
+  }
+
+  /**
+  * Save a comment for an activity to the API
+  * @param obj {object} A comment object
+  * @return {Promise}
+  */
+  comment(obj){
+    if(!obj.user){
+      let user = new User();
+      return user.isLoggedIn().then(u => {
+        if(u &amp;&amp; u.username) {
+          obj.user = u;
+          return this.comment(obj);
+        }
+        return false;
+      })
+    }
+    if(!obj.comment || !obj.comment.trim()) return;
+    let o = {
+      competence: obj.competence.name,
+      competenceLinksView: [{
+        evidenceTitel: obj.activity.name,
+        evidenceUrl: this.addUsernameToUrl(obj.activity.url, obj.user.username),
+        comments: [{
+          user: obj.author.username,
+          text: obj.comment,
+          courseContext: obj.competence.courseId
+        }],
+        validated: false
+      }
+    ],
+    abstractAssessment: [
+    ]
+  }
+  //console.log(o);
+  return this.put('progress/'+obj.user.username+'/competences/'+obj.competence.name, o);
+}
+
+/**
+* Check if an activity was done by a user
+* @param evidence {object} An evidence object of a progress object of a competence object
+* @param username {string} Username
+* @return {bool}
+*/
+isDone(evidence, username){
+  console.log(evidence, username);
+  return evidence.comments &amp;&amp; evidence.comments.filter((c) => c.user != username).length > 0;
+}
+
+/**
+* Store to every activity in a list of activities if they were done by a user
+* @param activities {array} A list of activities
+* @param competenceData {object} A competence object containing progress.evidence
+* @param username {strting} Username
+* @return {array}
+*/
+areDone(activities, competenceData, username){
+  if(!competenceData.progress.evidences) return activities;
+  return activities.map((a) => {
+    a.done = competenceData.progress.evidences.filter((e) => {
+      return e.evidenceUrl.indexOf(a.url) > -1 &amp;&amp; this.isDone(e, username)
+    }).length > 0;
+    console.log(a.done);
+    return a;
+  });
+}
+
+/**
+* Add the username to an evidence url to make it unique to the user. This is necessary
+* because the activity urls in Moodle are not unique to a user.
+* @param url {string} Evidence url
+* @param username {string} Username
+* @return {string}
+*/
+addUsernameToUrl(url, username){
+  let symbol = url.indexOf('?') > -1 ? '&amp;' : '?';
+  return url+symbol+this.evidenceParamName+'='+username;
+}
+
+/**
+* Get the activities for a competence from the API
+* @param competence {string} The competence ID
+* @return {Promise}
+*/
+getActivities(competence){
+  let user = new User();
+  let _this = this;
+  return user.isLoggedIn().then((u) => {
+    return _this.get('activities/competences/'+competence).then((activities) => {
+      console.log('Activities:', activities, competence);
+      activities = activities.map((a) => {a.type = 'activity'; a.activityData = {...a}; return a;});
+      return activities;
+    });
+  });
+}
+
+/**
+* Get all the activities from a course. This is only used for the admin.
+* @param courseId {string} course ID
+* @return {Promise}
+*/
+getCourseActivities(courseId){
+  let user = new User();
+  let _this = this;
+  return user.isLoggedIn().then((u) => {
+    return _this.get('courses/'+courseId+'/activities', {userId:u.username, password:u.password}).then((d) => {
+      let activities = [];
+      let already = {};
+      //console.log(d);
+      if(d &amp;&amp; d.length) {
+        for(var i in d) {
+          if(d[i] &amp;&amp; d[i].activityTypes &amp;&amp; d[i].activityTypes.length) {
+            d[i].activityTypes.map((at) => {
+              let acts = at.activities.map((a) => {
+                a.activityType = at.name;
+                a.type = 'activity';
+                if(!already[a.activityType + a.name]) {
+                  activities.push(a);
+                  activities[activities.length - 1].activityData = {...a};
+                  already[a.activityType+a.name] = true;
+                }
+              });
+              return acts;
+            });
+          }
+        }
+      }
+      //console.log('Activities:', activities);
+      return activities;
+    });
+  });
+}
+
+/**
+* Return the ID of an activity object
+* @param obj {object} An activity object
+* @return {string} ID
+*/
+generateID(obj){
+  return obj.url;
+}
+
+
+
+}
+
+module.exports = Activity;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

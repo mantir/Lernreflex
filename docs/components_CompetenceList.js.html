@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/CompetenceList.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/CompetenceList.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">'use strict'
+import React, {
+  Component,
+} from 'react';
+import {
+  TouchableHighlight,
+  ListView,
+  Platform,
+  Text,
+  View,
+  NavigatorIOS,
+  ScrollView,
+  ToolbarAndroid,
+  RefreshControl
+} from 'react-native';
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import CourseView from 'Lernreflex/components/CourseView';
+import ListEntryCompetence from 'Lernreflex/components/ListEntryCompetence';
+import {Router, styles, Competence, Loader, CompetenceCreate, UserList, Icon} from 'Lernreflex/imports';
+
+/**
+* Represents the view for a list of competences. If the type = "competences" is passed
+* as a prop, the list contains users competences. If type = "goals" is passed as a prop,
+* the list contains users goals.
+* @extends React.Component
+* @constructor
+*/
+
+class CompetenceList extends Component{
+
+  constructor(){
+    super();
+    this.unmounting = true;
+    this.Competence = new Competence();
+    var ds = new ListView.DataSource({
+      rowHasChanged: (r1, r2) => r1 !== r2,
+      sectionHeaderHasChanged : (s1, s2) => s1 !== s2,
+      getSectionData: this.getSectionData,
+      getRowData: this.getRowData,
+    });
+    this.state = {
+      dataSource: ds,
+      loaded: false,
+      refreshing: false,
+      iconsLoaded:0
+    };
+    this.renderRow = this.renderRow.bind(this);
+    this.renderSectionHeader = this.renderSectionHeader.bind(this);
+    this.loadData = this.loadData.bind(this);
+    this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
+  }
+
+  componentWillMount() {
+    let icons = [
+      [Router.icons.community]
+    ];
+    Icon.getImageSource(Router.icons.community, 30)
+    .then((source) => this.setState({ communityIcon: source, iconsLoaded: this.state.iconsLoaded+1 }));
+  }
+
+  componentDidMount(){
+    this.unmounting = false;
+    this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections({'loader:loader': 'loader'}, ['loader'], [['loader']])});
+    this.loadData();
+  }
+
+
+  /**
+  * Reaload competence after a new competence was created
+  */
+  afterCompetenceCreate(){
+    this.loadData(false);
+  }
+
+
+  /**
+  * Executed when the component receives new props
+  */
+  componentWillReceiveProps(){
+    let competence = new Competence();
+    let type = this.props.type == 'competences' ? 'reloadCompetences' : 'reloadGoals';
+    setTimeout(() => {
+      competence.getItem(type, false).then((value) => {
+        if(value) {
+          this.loadData(false, true);
+          competence.setItem(type, false);
+        }
+      })
+    }, 10)
+    //console.log('CompetenceList componentWillReceiveProps');
+  }
+
+  /**
+  * Updates the list if the progress of competence was changed
+  */
+  updateChanges(){
+    let comp = new Competence();
+    let competences = this.state.competences;
+    let _this = this;
+    let promises = [];
+    let counter = 0;
+    comp.mayApplyLocalChanges(competences, '{}.{}.name', '-', comp.toView.bind(comp)).then((comps) => {
+      if(comps){
+        this.loadData(false);
+      } else return;
+      _this.setState({competences:comps, dataSource: _this.getDatasource(comps)});
+    });
+  }
+
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  setState(input){
+    if(!this.unmounting){
+      super.setState(input);
+    }
+  }
+
+  /**
+  * Converts the returned data into displayable data
+  */
+  competencesToView(comps, notAsTree){
+    var viewCompetence = {
+      competence:'',
+      percent: ''
+    }
+    var sectionIDs = [];
+    var rowIDs = [];
+    var dataBlob = {};
+
+    var _this = this;
+    Object.keys(comps).map((k) => {
+      if(!comps[k]) return;
+      if(!dataBlob[k]){
+        sectionIDs.push(k);
+        dataBlob[k] = {title:k, index:rowIDs.length, type:comps[k][0].inCourse ? 'course' : 'learningTemplate'};
+        //console.log(comps[k]);
+        rowIDs[dataBlob[k].index] = comps[k].map((c) => c.name);
+      }
+
+      comps[k].map((comp) => {
+        dataBlob[k + ':' + comp.name] = comp;
+      });
+    });
+    //console.log(dataBlob, sectionIDs, rowIDs);
+    return {dataBlob, sectionIDs, rowIDs};
+  }
+
+  /**
+  * Get the data formatted for the list view datasource
+  */
+  getDatasource(competences){
+    let {dataBlob, sectionIDs, rowIDs} = this.competencesToView(competences);
+    return this.state.dataSource.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs);
+  }
+
+  /**
+  * Display message if there are no competences/goals
+  */
+  emptyList(){
+    let textCompetences = 'Erledige ein paar Lernziele, indem du in einem eigenen Lernziel deinen Fortschritt mit 100% einschätzt oder indem dir ein Mitlerner Feedback zu einer erledigten Aktivität in einem Lernziel eines Kurses gibt.';
+    let text = 'Du hast noch keine '+(this.props.type == 'goals' ? 'Lernziele.' : 'erreichten Lernziele.') + '\n';
+    if(this.props.type == 'competences') text += textCompetences+' ';
+    text += 'Du kannst diese Ansicht aktualisieren, indem du sie nach unten ziehst.'
+    if(this.props.type == 'goals') text += ' Lege mit dem + oben eins an' + '.';
+
+    this.setState({
+      dataSource:this.state.dataSource.cloneWithRowsAndSections({'empty:empty': {id:'empty', text:text}}, ['empty'], [['empty']]),
+      loaded: true, refreshing: false
+    });
+  }
+
+  /**
+  * Load the data from the API
+  * @param caching {bool} If the data can be fetched from cache
+  * @param receivingProps {bool} If action was triggered by receiving props
+  */
+  loadData(caching = true, receivingProps = false){
+    console.log(this.props);
+
+    var _this = this;
+    var competence = new Competence(caching);
+    //alert(this.props.type);
+    //competence.getAllKeys().done((keys) => console.log(keys));
+    //competence.removeLocal('goals');
+    this.setState({refreshing:true});
+    var type = this.props.type;
+    let getCompetences = type === 'goals' ? competence.getGoals.bind(competence) : competence.getCompetences.bind(competence);
+    getCompetences().done((competences) => {
+      console.log(competences);
+      if(Object.keys(competences).length){
+        _this.setState({
+          dataSource: _this.getDatasource(competences),
+          loaded: true,
+          refreshing: false,
+          competences: competences
+        });
+      } else this.emptyList();
+      if(competence.newGoalsReached) {
+        console.log('NEW GOAL Reached');
+        _this.props.updateBadge(competence.newGoalsReached, 'competences');
+      }
+      if(_this.props.type == 'competences')
+      _this.props.updateBadge(0, 'competences');
+      if(_this.props.type == 'competences' &amp;&amp; !caching &amp;&amp; !receivingProps)
+      competence.setItem('reloadGoals', true);
+      else if(_this.props.type == 'goals' &amp;&amp; !caching &amp;&amp; !receivingProps)
+      competence.setItem('reloadCompetences', true);
+    });
+    /*  if(type === 'goals') {
+    competence.getGoals().done((goals) => {
+    console.log(goals);
+    if(Object.keys(goals).length){
+    _this.setState({
+    dataSource: _this.getDatasource(goals),
+    loaded: true,
+    refreshing: false,
+    competences: goals
+    });
+    } else this.emptyList();
+    });
+    } else {
+    competence.getCompetences().done((competences) => {
+    console.log(competences);
+    if(Object.keys(competences).length){
+    _this.setState({
+    dataSource: _this.getDatasource(competences),
+    loaded: true,
+    refreshing: false,
+    competences: competences
+    });
+    } else this.emptyList();
+    });
+    }*/
+  }
+
+  /**
+  * Executed when a competence/goal is pressed
+  * @param rowData {object} Competence data
+  */
+  rowPressed(rowData) {
+    if(rowData.type == 'competence'){
+      rowData.updateChanges = this.updateChanges.bind(this);
+      rowData.communityIcon = this.state.communityIcon;
+      let route = {
+        title: 'Lernziel',
+        id: this.props.type == 'goals' ? 'goal' : 'competence',
+        rightButtonIcon: this.state.communityIcon,
+        onRightButtonPress: () => {Router.route({
+          id:'users',
+          component: UserList,
+          passProps: {
+            communityIcon: this.state.communityIcon,
+            previousRoute: {...route},
+            backTo:'competence',
+            competenceData: rowData.competenceData
+          }
+        }, this.props.navigator)},
+        component: CompetenceView,
+        passProps: {...rowData}
+      };
+      if(!rowData.courseId) { //Nur Community Icon anzeigen, wenn Kompetenz in Kurs
+        delete route.rightButtonIcon;
+        delete route.onRightButtonPress;
+      }
+      Router.route(route, this.props.navigator);
+    } else if(rowData.type == 'course'){
+      /*Router.route({
+      title: 'Gruppe',
+      id: 'group',
+      component: CourseView,
+      passProps: rowData
+      }, this.props.navigator);*/
+    }
+    return true;
+  }
+
+  /**
+  * Get the data for a certain section of the list view
+  * @param dataBlob {object}
+  * @param sectionID {string} section ID
+  */
+  getSectionData(dataBlob, sectionID){
+    return dataBlob[sectionID];
+  }
+
+  /**
+  * Get the data for a certain row of the list view
+  * @param dataBlob {object}
+  * @param sectionID {string} section ID
+  * @param rowID {string} row ID
+  */
+  getRowData(dataBlob, sectionID, rowID){
+    return dataBlob[sectionID + ':' + rowID];
+  }
+
+  /**
+  * Render the header of a section
+  * @param rowData {object}
+  * @param id {string} row ID
+  */
+  renderSectionHeader(rowData, id){
+    if(id == 'loader') return null;
+    if(id == 'empty') return null;
+    let cstyle = rowData.type == 'course' ? styles.list.liHead2 : styles.list.liHead;
+    return &lt;TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => {this.rowPressed(rowData)}} style={cstyle}>
+      &lt;View>
+        &lt;View style={styles.list.rowContainer}>
+          &lt;View style={styles.list.textContainer}>
+            &lt;Text style={styles.list.headText}>
+              {rowData.title + (rowData.type == 'course' ? ' (Kurs)' : '')}
+            &lt;/Text>
+            &lt;Text style={styles.list.right}>
+              {/*rowData.percent+'%'*/}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    &lt;/TouchableHighlight>
+  }
+
+  /**
+  * Render a competence in a list
+  * @param rowData {object}
+  * @return {ListEntryCompetence}
+  */
+  renderRow(rowData){
+    console.log(rowData);
+    return &lt;ListEntryCompetence
+      type='competence'
+      underlayColor={styles.list.liHover}
+      onPress={() => {this.rowPressed(rowData)}}
+      rowData={rowData}
+      style={styles.list.li} />
+  }
+
+  /**
+  * Executed on pull to refresh to reload competences
+  */
+  _onRefresh() {
+    this.loadData(false);
+  }
+
+  /**
+  * Render the list of the competences/goals
+  */
+  render(){
+    /*if(!this.state.loaded) {
+    return &lt;ScrollView style={styles.wrapper}>
+    &lt;Loader />
+    &lt;/ScrollView>
+    }*/
+    return &lt;View style={styles.wrapper}>
+      &lt;ListView
+        refreshControl={ &lt;RefreshControl refreshing={this.state.refreshing} onRefresh={this._onRefresh.bind(this)} /> }
+        style={styles._.list}
+        dataSource={this.state.dataSource}
+        enableEmptySections={true}
+        renderRow={this.renderRow}
+        renderSectionHeader={this.renderSectionHeader}>
+      &lt;/ListView>
+    &lt;/View>
+  }
+
+  /*  testRoute(){
+  //alert(1);
+  var navigator = this.props.navigator;
+  setTimeout(() => {
+  //navigator.push()
+  Router.route({
+  title:'test',
+  id:'goals',
+  component:CompetenceCreate,
+  }, navigator);
+  }, 1000);
+  }
+
+  _renderTestButton(){
+  return &lt;TouchableHighlight underlayColor={styles.list.liHover} onPress={() => this.testRoute()} style={{position:'absolute', top:200}}>
+  &lt;View>
+  &lt;View style={styles.list.rowContainer}>
+  &lt;View style={styles.list.textContainer}>
+  &lt;Text>
+  TestButton
+  &lt;/Text>
+  &lt;/View>
+  &lt;/View>
+  &lt;View style={styles.list.separator} />
+  &lt;/View>
+  &lt;/TouchableHighlight>
+  }*/
+}
+
+module.exports = CompetenceList;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

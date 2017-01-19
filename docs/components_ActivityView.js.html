@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/ActivityView.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/ActivityView.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">import React, {
+  Component,
+} from 'react';
+import ReactNative, {
+  TouchableHighlight,
+  ListView,
+  ScrollView,
+  Text,
+  View,
+  NavigatorIOS,
+  Platform,
+  TextInput,
+  Slider,
+  Image
+} from 'react-native';
+import {
+  styles,
+  Router,
+  Competence,
+  Activity,
+  ListEntryCompetence,
+  Icon,
+  Loader,
+  User,
+  InputScrollView
+} from 'Lernreflex/imports';
+import Dimensions from 'Dimensions';
+import KeyboardSpacer from 'react-native-keyboard-spacer';
+import dismissKeyboard from 'dismissKeyboard'
+
+/**
+ * Represents the view for an activity.
+ * @extends React.Component
+ * @constructor
+ */
+
+class ActivityView extends Component{
+
+  constructor(){
+    super();
+    this.activity = new Activity();
+    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    this.state = {
+      currentTab: 'comments',
+      comment:'',
+      comments: ds.cloneWithRows([
+        //{id:2, percent:15, type:'comment', user:'Klaus R.', comment:'Deine Lösung war sehr elegant. Der Gradient Descent könnte allerdings noch etwas schneller ablaufen, wenn die du Step Size größer machst.'},
+        //{id:1, percent:75, type:'comment', user:'Martin K.', comment:''},
+        /*        {id:3, percent:20, type:'comment', user:'Martin K.', comment:'Comment 3'},
+        {id:4, percent:20, type:'comment', user:'Martin K.', comment:'Comment 4'},
+        {id:5, percent:20, type:'comment', user:'Martin K.', comment:'Comment 5'},*/
+      ]),
+    };
+    this.render = this.render.bind(this);
+    this.updateState = this.updateState.bind(this);
+  }
+
+  /**
+  * Override setState from parent to avoid setting the state when the component is not mounted.
+  * @param input {object} A state object
+  */
+  setState(input){
+    if(!this.unmounting){
+      super.setState(input);
+    }
+  }
+
+  /**
+  * Store that the component will unmount, so that the component can't set its state anymore.
+  */
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  /**
+  * Initialization
+  */
+  componentDidMount(param = 'nothing'){
+    this.unmounting = false;
+    this.updateState();
+  }
+
+  /**
+  * Executed when this component receives new props. E.g. when the user to view the activity for, changes.
+  * @param nextProps {object} The properties which will change
+  */
+  componentWillReceiveProps(nextProps){
+    let user = new User();
+    let comp = new Competence(false);
+    let _this = this;
+    if(!user.different(this.state.currentUser, nextProps.currentUser)) return;
+    this.state.currentUser = nextProps.currentUser;
+    user.getCurrentUser().then((cu) => {
+      console.log('current', cu);
+      user.isLoggedIn().then((u) => {
+        if(user.different(u, cu) || !cu) {
+          this.setState({
+            currentUser: cu,
+            loading:true
+          });
+          let username = cu ? cu.username : u.username;
+          console.log('username', username);
+          comp.getProgress(username).then((progress) => {
+            let props = {...nextProps,
+              competenceData:{...nextProps.competenceData, progress:progress[_this.props.competenceData.name]},
+              currentUser:cu,
+              currentProgress: progress
+            };
+            _this.updateState(props);
+          });
+        }
+      });
+    });
+  }
+
+  /**
+  * Update the state of this component from new props
+  * @param nextProps {object} New props
+  */
+  updateState(nextProps){
+    let props = !nextProps ? this.props : nextProps;
+
+    let activity = new Activity();
+    let user = new User();
+    let comments = activity.commentsToView(props.competenceData.progress, props.activityData);
+
+    this.setState({
+      height:40,
+      commentsData: comments,
+      currentUser: props.currentUser,
+      comments: this.state.comments.cloneWithRows(comments),
+      loading:false
+    });
+  }
+
+  /**
+  * Render comment row from ListEntryCompetence component
+  * @param rowData {object} An activity object
+  * @return {ListEntryCompetence}
+  */
+  renderRow(rowData){
+    return &lt;ListEntryCompetence type="comment" rowData={rowData} />
+  }
+
+  /**
+  * Render headline for comments
+  * @return {ReactNative.Text}
+  */
+  _renderHeadline(){
+    let headline = {key:'comments', name: 'Kommentare', value:''};
+    return &lt;Text style={{color:styles._.secondary, marginLeft:10}}>{headline.name}&lt;/Text>
+  }
+
+  /**
+  * Render comments and feedback input or loading indicator
+  * @return {array_of_React.Components|Loader}
+  */
+  _renderTabContent(){
+    var content = this.state.comments;
+    var input = null, spacer = null;
+    if(this.state.loading) {
+      return &lt;Loader />
+    }
+
+    input = &lt;View key="inputView" style={{flexDirection:'row'}}>
+      &lt;View style={{flexDirection:'column', alignItems:'flex-start', flex:0.8}}>
+        &lt;TextInput
+          key="input"
+          ref="newComment"
+          onChange={(event) => {
+            this.setState({comment:event.nativeEvent.text, height: event.nativeEvent.contentSize.height});
+            this._scrollToBottom('newComment');
+          }}
+          onFocus={() => this._scrollToBottom('newComment')}
+          value={this.state.comment}
+          numberOfLines={10}
+          multiline={true}
+          style={[styles.comp.input, styles.comp.commentInput, {height: Math.max(40, this.state.height)}]}
+          maxLength={styles.max.comment}
+          editable={!this.state.loading}
+          enablesReturnKeyAutomatically={true}
+          placeholder='Kommentieren ...'>
+        &lt;/TextInput>
+      &lt;/View>
+      &lt;View style={{flexDirection:'column', alignItems:'center', flex:0.2}}>
+        &lt;View style={{flexDirection:'row', alignItems:'flex-end', flex:1}}>
+          &lt;TouchableHighlight underlayColor='#FFF' onPress={() => this.addComment()} style={[styles.comp.addComment]}>
+            &lt;Text style={[styles._.highlight, {color: this.state.comment.trim() &amp;&amp; !this.state.sending ? styles._.secondary : '#EEE'}]}>
+              Senden
+            &lt;/Text>
+          &lt;/TouchableHighlight>
+        &lt;/View>
+      &lt;/View>
+    &lt;/View>
+
+    var list = &lt;ListView
+      key='list'
+      style={styles._.list}
+      dataSource={content}
+      enableEmptySections={true}
+      renderRow={(rowData) => this.renderRow(rowData)}>
+    &lt;/ListView>
+    return [list, input, spacer];
+  }
+
+  /**
+  * Add a comment from the input field to the comments
+  */
+  addComment(){
+    let user = new User();
+    this.setState({sending:true});
+    user.isLoggedIn().then((u) => {
+      var comment = {
+        user: this.state.currentUser,
+        author: u,
+        competence: this.props.competenceData,
+        activity: this.props,
+        comment: this.state.comment
+      }
+      comment.comment = comment.comment.trim();
+      if(!comment.comment) {
+        return;
+      }
+      let activity = new Activity();
+      activity.comment(comment).then((d) => {
+        let created = Date.now();
+        this.state.commentsData.push({user:u.username, created:created, text:this.state.comment});
+        this.setState({comments: this.state.comments.cloneWithRows(this.state.commentsData),
+          comment:'',
+          sending: false
+        });
+      });
+    });
+    dismissKeyboard();
+  }
+
+  /**
+  * Scroll to a component
+  * @param refName {string} ref name of the component
+  */
+  _scrollToBottom(refName) {
+    var _this = this;
+    if(Platform.OS != 'ios') return;
+    setTimeout(() => {
+      let scrollResponder = _this.refs.scroller.getScrollResponder();
+      scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
+        ReactNative.findNodeHandle(_this.refs[refName]),
+        10, //additionalOffset
+        true
+      );
+    }, 1);
+  }
+
+  /**
+  * Render the username at the top, if it's different than the current user.
+  * @return {ListEntryCompetence|null}
+  */
+  renderUser(){
+    if(this.state.currentUser){
+      return &lt;ListEntryCompetence
+        type="currentUser"
+        underlayColor={styles._.primary}
+        onPress={() => {this.showUsers()}}
+        rowData={this.state.currentUser} />
+    }
+    return null;
+  }
+
+  /**
+  * Render the activity view
+  * @return {ReactNative.View}
+  */
+  render(){
+    var activity = this.props;
+    var Comp = ScrollView;
+    if(Platform.OS == 'ios') {
+      Comp = InputScrollView;
+    }
+    let isDone;
+    if(activity.done) isDone = &lt;View style={[styles._.col, {alignSelf:'center', flex:0.1}]}>
+      &lt;Image style={[{width: 20, height: 20}]} resizeMode='contain' source={require('Lernreflex/img/checked.png')}>&lt;/Image>
+    &lt;/View>
+    return &lt;View style={{flex:1}}>
+      &lt;Comp keyboardShouldPersistTaps={true} style={[styles.wrapper, {overflow:'hidden'}]} ref="scroller">
+        {this.renderUser()}
+        &lt;View style={styles._.row}>
+          &lt;View style={[styles._.col, {flex:activity.done ? 0.9 : 1}]}>
+            &lt;Text style={[styles.comp.title]}>{activity.name}&lt;/Text>
+          &lt;/View>
+          {isDone}
+        &lt;/View>
+        &lt;View style={styles._.row}>
+          {this._renderHeadline()}
+        &lt;/View>
+        {this._renderTabContent()}
+      &lt;/Comp>
+    &lt;/View>
+  }
+}
+
+
+module.exports = ActivityView;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

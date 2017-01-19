@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/Questions.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/Questions.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">import React, {
+  Component,
+} from 'react';
+import {
+  findNodeHandle,
+  TouchableHighlight,
+  ListView,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  NavigatorIOS,
+  Animated,
+  Alert,
+  Platform
+} from 'react-native';
+import {
+  styles,
+  Icon,
+  Router,
+  User,
+  lib,
+  SuperComponent,
+  Competence,
+  CompetenceView,
+  Loader,
+  ListEntryCompetence
+} from 'Lernreflex/imports';
+
+/**
+ * Represents the view for the reflective questions for a competence.
+ * @extends SuperComponent
+ * @constructor
+ */
+
+class Questions extends SuperComponent{
+
+  constructor(){
+    super();
+    this.user = new User();
+    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    var _this = this;
+    let user = new User();
+
+    this.state = {
+      dataSource: ds,
+      answers: {},
+      questions: [],
+      currentRow: -1
+    }
+    //this.colors = ['#09F', '#F66', '#090', '#666', '#F9F', '#990', '#099'];
+    //this.colors = ['#666', '#777', '#888', '#999', '#AAA', '#BBB', '#CCC', '#DDD'];
+    this.colors = ['#3E6E7F', '#4E7E8F', /*'#5E8E9F', '#6E9EAF', '#7EAEBF', '#8EBECF', '#9ECEDF'*/];
+    this.render = this.render.bind(this);
+    this.renderRow = this.renderRow.bind(this);
+    this.renderCurrentRow = this.renderCurrentRow.bind(this);
+    this.changeMode = this.changeMode.bind(this);
+    this.changeQuestion = this.changeQuestion.bind(this);
+  }
+
+  componentDidMount(){
+    this.setQuestions();
+  }
+
+  /**
+  * Get the numbers of questions the user has answered for a competence + 1.
+  * @return {int}
+  */
+  getMaxAnswers(){
+    let oneNot = false;
+    let answers = this.state.answers;
+    return this.state.questions.filter((q) => {
+      let res = !oneNot &amp;&amp; answers[q.text];
+      if(!answers[q.text]) oneNot = true;
+      return res;
+    }).length;
+  }
+
+  /**
+  * Set the questions for the view by the props
+  */
+  setQuestions(){
+    let questions = this.state.questions = this.props.questions;
+    let answers = this.state.answers = this.props.answers;
+    let maxAnswers = this.getMaxAnswers();
+    let questionList = [
+      {text: 'competence'},
+      {text: 'currentUser'},
+      ...questions,
+      //{text: 'saveButton'},
+    ];
+    console.log(questionList);
+    //console.log(answers);
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows(questionList),
+      questions: questions,
+      answers: answers,
+      maxAnswers: maxAnswers,
+      currentUser: this.props.currentUser,
+      currentRow: -1
+    })
+  }
+
+  /**
+  * Save the answers to a question
+  * @param q {string} question ID
+  */
+  saveAnswers(q){
+    let c = new Competence();
+    let answers = [];
+    if(q) {
+      answers = {};
+      answers[q] = this.state.answers[q];
+    } else answers = this.state.answers;
+    answers = Object.keys(answers).map((q) => {
+      return {
+        text: this.state.answers[q],
+        questionId: q
+      };
+    }).filter((a) => (a.text+'').trim() ? true : false);
+
+    this.setState({saving:true});
+    return c.saveAnswers(this.props.competenceData, answers).then((d) => {
+      this.setState({saving:false});
+      this.props.questionsAnswered();
+    })
+  }
+
+  rowPressed(rowData) {
+
+  }
+
+  /**
+  * Scroll a component into view.
+  * @param refName {string} the component ref string.
+  */
+  inputFocused (refName) {
+    //console.log(refName, this.refs[refName], this.refs);
+    //setTimeout(() => {
+    if(Platform.OS != 'nonsense') {
+      return;
+    }
+    let scrollResponder = this.refs.scrollView.getScrollResponder();
+    scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
+      findNodeHandle(this.refs[refName]),
+      100, //additionalOffset
+      false
+    );
+    //}, 1);
+  }
+
+  /**
+  * Render current user at the top, if different from the current one
+  */
+  renderUser(){
+    if(this.state.currentUser){
+      return &lt;ListEntryCompetence
+        type="currentUser"
+        underlayColor={styles._.primary}
+        onPress={() => {this.showUsers()}}
+        rowData={this.state.currentUser}
+        />
+    }
+    return null;
+  }
+
+  /**
+  * Render the competence title
+  * @return {ReactNative.View}
+  */
+  renderCompetence(){
+    //console.log(this.props.competenceData);
+    return &lt;View style={{backgroundColor:'#FFF'}}>
+      &lt;Text style={styles.comp.title}>{this.props.competenceData.text}&lt;/Text>
+    &lt;/View>
+  }
+
+  /**
+  * Set the focus to the current answer input field
+  */
+  setCurrentFocus(){
+    let fun = () => {
+      if(this.refs.currentAnswer) {
+        this.refs.currentAnswer.focus();
+      } else
+      setTimeout(fun, 100);
+    }
+    fun();
+  }
+
+  /**
+  * Change the view from a list of questions to the single question/answer view, and vice versa
+  * @param mode {int} 0 or 1, 1 is the mode for answering questions one by one, 0 shows a list
+  * @param currentRow {int} The current question index
+  */
+  changeMode(mode, currentRow){
+    if(mode == 1) { //In den Beantwortenmodus gehen
+      //console.log(currentRow, this.state.questions);
+      let answerCopies = Object.assign({}, this.state.answers);
+      let currentQuestion = this.state.questions[currentRow];
+      if(currentQuestion) currentQuestion = currentQuestion.text;
+      this.setState({currentRow, currentQuestion, answerCopies});
+      this.setCurrentFocus();
+    } else if(mode == 0){ //In den Übersichtsmodus
+      if(this.state.answerCopies[this.state.currentQuestion])
+        this.state.answers[this.state.currentQuestion] = this.state.answerCopies[this.state.currentQuestion];
+      if(this.state.changedAnswer) this.saveAnswers(this.state.currentQuestion);
+      this.setState({
+        maxAnswers: this.getMaxAnswers(),
+        currentRow: -1
+      });
+    }
+  }
+
+  /**
+  * Check if a question was answered
+  * @param top {int} top margin for the loader
+  */
+  wasAnswered(q){
+    return this.state.answers[q] &amp;&amp; this.state.answers[q].trim();
+  }
+
+  /**
+  * Navigate to next or previous question
+  * @param dir {string} previous or next
+  */
+  changeQuestion(dir){
+    let newRow = this.state.currentRow;
+    let changedAnswer = this.state.changedAnswer;
+    console.log(changedAnswer, this.wasAnswered(this.state.currentQuestion));
+    if(dir == 'next'){
+      if(changedAnswer) this.saveAnswers(this.state.currentQuestion);
+      if(!this.wasAnswered(this.state.currentQuestion)) return;
+      if(this.state.currentRow >= this.state.questions.length - 1) return this.changeMode(0);
+      newRow = this.state.currentRow + 1;
+    } else if(dir == 'previous'){
+      if(this.state.answerCopies[this.state.currentQuestion])
+        this.state.answers[this.state.currentQuestion] = this.state.answerCopies[this.state.currentQuestion];
+      if(this.currentRow == 0) return this.changeMode(0);
+      newRow = this.state.currentRow - 1;
+    }
+    delete this.refs.currentAnswer;
+    let currentQuestion = this.state.questions[newRow];
+    if(currentQuestion) currentQuestion = currentQuestion.text;
+    this.setState({currentRow:newRow, currentQuestion:currentQuestion, changedAnswer:false});
+    this.setCurrentFocus();
+  }
+
+  /**
+  * Render the current question in answering mode
+  * @param rowData {object} question data
+  */
+  renderCurrentRow(rowData){
+    if(rowData.index != this.state.currentRow) return null;
+    let ref = 'currentAnswer';
+    let index = rowData.index;
+    let answer = &lt;TextInput
+      ref={(com) => this.refs[ref] = com}
+      onFocus={this.inputFocused.bind(this, ref)}
+      onChangeText={(text) => {
+        if(this.enterButtonPressed(text)){
+          this.changeQuestion('next');
+        } else {
+          this.state.answers[rowData.text] = text;
+          this.setState({answers:this.state.answers, currentQuestion:rowData.text, changedAnswer: true});
+        }
+      }}
+      value={this.state.answers[rowData.text]}
+      multiline={true}
+      numberOfLines={3}
+      returnKeyType="next"
+      style={styles.comp.questionInput}
+      maxLength={styles.max.answer}
+      autoFocus={true}
+      editable={!this.state.loading}
+      placeholder={rowData.placeholder ? rowData.placeholder : 'Antwort eingeben ...'}>
+    &lt;/TextInput>
+    return &lt;View style={[styles.list.liHead, {backgroundColor:this.colors[rowData.index % this.colors.length]}]}>
+      &lt;Text style={[styles.list.headText, {margin:5}]}>Frage {index + 1}/{this.state.questions.length}&lt;/Text>
+      &lt;View style={[styles._.row, {paddingBottom:0}]}>
+        &lt;View style={styles._.col}>
+          &lt;Text style={[styles.list.headText, {margin:5}]}>
+            {rowData.text}
+          &lt;/Text>
+        &lt;/View>
+      &lt;/View>
+      &lt;View style={styles._.row}>
+        {answer}
+      &lt;/View>
+      &lt;View style={styles._.row}>
+        &lt;View style={[styles._.col, {flex:0.2}]}>
+          &lt;TouchableHighlight underlayColor='#FFF' style={styles._.button} onPress={ () => {this.changeQuestion('previous')} }>
+            &lt;Text style={styles._.buttonText}>{'&lt;'}&lt;/Text>
+          &lt;/TouchableHighlight>
+        &lt;/View>
+        &lt;View style={[styles._.col, {flex:0.3}]}>
+          &lt;TouchableHighlight underlayColor='#FFF' style={[styles._.button, {backgroundColor:styles._.primaryDarker}]} onPress={ () => {this.changeMode(0)} }>
+            &lt;Text style={styles._.buttonText}>Übersicht&lt;/Text>
+          &lt;/TouchableHighlight>
+        &lt;/View>
+        &lt;View style={[styles._.col, {flex:0.5}]}>
+          &lt;TouchableHighlight underlayColor='#FFF' style={styles._.button} onPress={ () => {this.changeQuestion('next')} }>
+            &lt;Text style={styles._.buttonText}>Speichern{' >'}&lt;/Text>
+          &lt;/TouchableHighlight>
+        &lt;/View>
+      &lt;/View>
+    &lt;/View>
+  }
+
+  /**
+  * Render question in list view
+  * @param rowData {object} question data
+  */
+  renderRow(rowData){
+    if(rowData.text == 'saveButton') {
+      return this.renderSaveButton();
+    }
+    if(rowData.text == 'currentUser') {
+      return this.renderUser();
+    }
+    if(rowData.text == 'competence') {
+      return this.renderCompetence();
+    }
+    if(this.state.currentRow > -1) return this.renderCurrentRow(rowData);
+    if(rowData.index > this.state.maxAnswers) return null;
+    var ref = '';
+    ref = rowData.index !== undefined ? 'text_'+rowData.index : '';
+    let index = rowData.index !== undefined ? (rowData.index + 1) + '. ' : '';
+    let bg = rowData.index === undefined ? '#FFF' : this.colors[rowData.index % this.colors.length];
+    var nextRef = 'text_'+(rowData.index + 1);
+    let color = styles._.primaryDarker;
+    let text = this.state.currentUser ? 'Frage wurde noch nicht beantwortet.' : 'Frage beantworten ...'
+    if(this.state.answers[rowData.text]) {
+      color = styles._.primaryBrighter;
+      text = this.state.answers[rowData.text];
+    }
+    let answer = &lt;Text style={{color:color, fontSize:16, marginLeft:20, marginRight:20, marginBottom:10}}>
+      {text}
+    &lt;/Text>
+
+    let ComponentType = View;
+    let style = [styles.list.liHead, {backgroundColor:bg}];
+    let props = {};
+    if(!this.state.currentUser) {
+      ComponentType = TouchableHighlight;
+      props.underlayColor = '#FFF';
+      props.onPress = () => {
+        this.changeMode(1, rowData.index);
+      }
+    }
+
+    return &lt;ComponentType {...props} style={style}>
+      &lt;View>
+        &lt;View style={[styles._.row, {paddingBottom:0}]}>
+          &lt;View style={styles._.col}>
+            &lt;Text style={[styles.list.headText, {margin:5}]}>
+              {index}{rowData.text}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={[styles._.row]}>
+          {answer}
+        &lt;/View>
+
+      &lt;/View>
+    &lt;/ComponentType>
+  }
+
+  /**
+  * Render the view of the reflection questions of a competence
+  */
+  render(){
+    //let style = this.state.currentRow > -1 ? {backgroundColor:styles._.primary} : {};
+    let style = {backgroundColor:styles._.primary};
+    return &lt;View style={[styles.wrapper, style]}>
+      &lt;ListView
+        ref="scrollView"
+        keyboardDismissMode='interactive'
+        keyboardShouldPersistTaps={true}
+        style={[styles._.list]}
+        dataSource={this.state.dataSource}
+        renderRow={this.renderRow}>
+      &lt;/ListView>
+    &lt;/View>
+  }
+}
+
+module.exports = Questions;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

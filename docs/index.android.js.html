@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: index.android.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: index.android.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">'use strict';
+
+import React, {
+  Component,
+} from 'react';
+import {
+  AppRegistry,
+  StyleSheet,
+  Platform,
+  ListView,
+  TouchableHighlight,
+  StatusBar,
+  Text,
+  UIManager,
+  View,
+  TouchableOpacity,
+  Navigator,
+  ScrollView,
+  ToolbarAndroid,
+  BackAndroid,
+  Keyboard,
+  Dimensions
+} from 'react-native';
+import TabNavigator from 'react-native-tab-navigator';
+
+import Menu from 'Lernreflex/components/Menu';
+import CompetenceView from 'Lernreflex/components/CompetenceView';
+import BadgeList from 'Lernreflex/components/BadgeList';
+import {styles, Router, User, UserLogin, Icon, CompetenceCreate, UserList, CompetenceList} from 'Lernreflex/imports';
+
+
+var _navigator; // we fill this up upon on first navigation.
+
+/**
+ * Starting point for view for Lernreflex for Android
+ * @extends React.Component
+ * @constructor
+ */
+class Lernreflex extends Component {
+  constructor(){
+    super();
+    this.position = 0;
+    this.renderScene = this.renderScene.bind(this);
+    this.routeMapper = {
+      test: 4
+    }
+    this.systemName = Router.systemName;
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+    this.afterCompetenceCreate = this.afterCompetenceCreate.bind(this);
+    this.updateBadge = this.updateBadge.bind(this);
+
+    this.user = new User();
+    var _this = this;
+
+    this.initialRoute = {
+      title: 'Lernziele',
+      component: CompetenceList,
+      id: 'goals',
+      passProps:{
+        type:'goals'
+      }
+    };
+    this.loginRoute = {
+      title: this.systemName + ' Login',
+      id:'user.login',
+      component: UserLogin,
+      passProps: {
+        onLogin: () => this.onLogin()
+      }
+    };
+    this.state = {
+      selectedTab: 'goals',
+      keyboardIn: false
+    };
+    this.checkedLoggedIn = false;
+    this.user.isLoggedIn().done((isIn) => {
+      this.checkedLoggedIn = true;
+      this.loggedIn = isIn;
+      this.setState({loggedIn: isIn});
+    });
+    this.NavigationBarRouteMapper = {
+
+      LeftButton: function(route, navigator, index, navState) {
+
+        if((route.id == 'goals' || route.id == 'competences' || route.id == 'badges' || route.id == 'menu') &amp;&amp; _this.state.loggedIn) {
+          return &lt;Text style={{paddingLeft:10, color:'#FFF'}}>{_this.state.loggedIn.username}&lt;/Text>
+        }
+
+        //var previousRoute = navState.routeStack[index - 1];
+        return (
+          null
+        );
+      },
+
+      RightButton: function(route, navigator, index, navState) {
+        let iconSize = 25;
+        if(route.id == 'goals')
+        return (
+          &lt;TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight}
+            onPress={() => {Router.route({
+              id:'goal.add',
+              component:CompetenceCreate,
+              passProps: {
+                afterCompetenceCreate: _this.afterCompetenceCreate
+              }
+            }, navigator)}} >
+            &lt;Icon name="md-add" size={iconSize} color='#FFF' />
+            &lt;/TouchableHighlight>
+        );
+        if(route.id == 'competences')
+        return (
+          &lt;TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight} onPress={() => {Router.route({id:'competence.add', component:CompetenceCreate}, navigator)}} >
+            &lt;Icon name="md-add" size={iconSize} color='#FFF' />
+          &lt;/TouchableHighlight>
+        );
+        if(route.id == 'goal' || route.id == 'competence' || route.id == 'activity')
+        return (
+          &lt;TouchableHighlight underlayColor={styles._.primary} style={styles._.toolbarRight}
+            onPress={route.onRightButtonPress}>
+            &lt;Icon name={Router.icons.community} size={iconSize} color='#FFF' />
+          &lt;/TouchableHighlight>
+        );
+      },
+
+      Title: function(route, navigator, index, navState) {
+        return (
+          &lt;Text style={styles._.toolbarText}>{route.title}&lt;/Text>
+        );
+      },
+
+    };
+  }
+
+  componentDidMount () {
+    this.subscriptions = [
+      Keyboard.addListener('keyboardDidShow', this.keyboardWillShow.bind(this)),
+      Keyboard.addListener('keyboardDidHide', this.keyboardWillHide.bind(this))
+    ];
+  }
+
+  componentWillUnmount () {
+    this.subscriptions.forEach((sub) => {sub.remove()});
+  }
+
+  keyboardWillShow (e) {
+    //console.log('KEYBOARD SHOW');
+    this.setState({
+      keyboardIn: true,
+    })
+  }
+
+  keyboardWillHide (e) {
+    //console.log('KEYBOARD HIDE');
+    this.setState({
+      keyboardIn: false,
+    })
+  }
+
+  afterCompetenceCreate(){
+    if(this.refs.navGoal) {
+      //console.log(this.refs.navGoal.refs);
+      this.refs.navGoal.refs.goals.afterCompetenceCreate();
+    }
+    if(this.refs.navComp)
+      this.refs.navComp.refs.competences.afterCompetenceCreate();
+  }
+
+  updateBadge(n, ref){
+    let o = {};
+    o[ref+'Badge'] = n;
+    this.setState(o);
+  }
+
+  onLogin(){
+    this.loggedIn = true;
+    this.setState({loggedIn: true});
+    Router.route(this.initialRoute, _navigator, {reset:true});
+  }
+
+  onLogout(){
+    this.loggedIn = false;
+    this.setState({loggedIn: false});
+    this.selectTab('goals');
+    Router.route(this.loginRoute, _navigator, {reset:true});
+  }
+
+  _renderToolbar(route, actions, onSelect){
+    if(!this.loggedIn)
+      return null;
+    return &lt;Icon.ToolbarAndroid
+          actions={actions}
+          onActionSelected={onSelect}
+          style={styles._.actionBar}
+          />
+  }
+
+  renderScene(route, navigator){
+    _navigator = navigator;
+    return &lt;View style={styles._.androidView}>
+      {Router.renderRoute(route, navigator)}
+    &lt;/View>
+
+  }
+
+  _renderNavigator(route, ref){
+    if(this.state.iconsLoaded &lt; 1) { //Erst wenn das Icon geladen ist anzeigen
+      return false;
+    }
+    route.leftButtonIcon = this.state.hamburgerIcon;
+    route.onLeftButtonPress = () => {
+
+    };
+    let sceneStyle = this.state.keyboardIn ? {paddingBottom:0, marginBottom:0} : {};
+    return &lt;Navigator ref={ref}
+      tintColor={styles._.navBtnColor}
+      titleTextColor={styles._.navColor}
+      barTintColor={styles._.navBg}
+      sceneStyle={[styles._.navWrap, sceneStyle]}
+      navigationBar={&lt;Navigator.NavigationBar
+        navigationStyles={Navigator.NavigationBar.StylesIOS}
+        style={styles._.toolbar}
+        title="Router"
+        routeMapper={this.NavigationBarRouteMapper}
+        />}
+        renderScene={this.renderScene}
+        initialRoute={route}>
+      &lt;/Navigator>
+  }
+
+  selectTab(tab, navigatorRef){
+    if(this.state.selectedTab == tab) {
+      this.refs[navigatorRef].popToTop();
+    }
+    this.setState({
+      selectedTab: tab,
+    });
+  }
+
+  render() {
+    if(!this.checkedLoggedIn) {
+      return null
+    }
+    var initialRoute = this.initialRoute;
+    if(!this.state.loggedIn) {
+      return this._renderNavigator({
+        title: this.systemName + ' Login',
+        component: UserLogin,
+        passProps: {
+          onLogin: () => { this.onLogin() }
+        }
+      }, 'userLogin');
+    }
+    let iconSize = 27;
+    let iconColor = styles._.tabIconColor;
+    let tabBarStyle = {};
+    let sceneStyle = {};
+    if(this.state.keyboardIn) {
+      tabBarStyle.height = 0;
+      tabBarStyle.overflow = 'hidden';
+      sceneStyle.paddingBottom = 0;
+    }
+    return (
+      &lt;TabNavigator
+        style={{backgroundColor:'#FFF'}}
+        sceneStyle={sceneStyle}
+        tabBarStyle={tabBarStyle}
+        barTintColor="white">
+        &lt;TabNavigator.Item
+          renderIcon={() => &lt;Icon name={Router.icons.goals} size={iconSize} color={iconColor} />}
+          renderSelectedIcon={() => &lt;Icon name={Router.icons.goals} size={iconSize} color={styles._.secondary} />}
+          selected={this.state.selectedTab === 'goals'}
+          onPress={() => {
+            this.selectTab('goals', 'navGoal');
+          }}>
+          {this._renderNavigator({
+            id:'goals',
+            title: 'Lernziele',
+            component: CompetenceList,
+            passProps: {
+              ref: 'goals',
+              type:'goals',
+              updateBadge: this.updateBadge
+            }
+          }, 'navGoal')}
+        &lt;/TabNavigator.Item>
+        &lt;TabNavigator.Item
+          id='badges'
+          badgeText={this.state.badgesBadge > 0 ? this.state.badgesBadge : undefined}
+          renderIcon={() => &lt;Icon name={Router.icons.badges} size={iconSize} color={iconColor} />}
+          renderSelectedIcon={() => &lt;Icon name={Router.icons.badges} size={iconSize} color={styles._.secondary} />}
+          selected={this.state.selectedTab === 'badges'}
+          onPress={() => {
+            this.selectTab('badges', 'navBadge');
+          }}>
+          {this._renderNavigator({
+            id:'badges',
+            title: 'Abzeichen',
+            component: BadgeList,
+            passProps: {
+              updateBadge: this.updateBadge
+            }
+          }, 'navBadge')}
+        &lt;/TabNavigator.Item>
+        &lt;TabNavigator.Item
+          id='competences'
+          badgeText={this.state.competencesBadge > 0 ? this.state.competencesBadge : undefined}
+          renderIcon={() => &lt;Icon name={Router.icons.competences} size={iconSize} color={iconColor} />}
+          renderSelectedIcon={() => &lt;Icon name={Router.icons.competences} size={iconSize} color={styles._.secondary} />}
+          selected={this.state.selectedTab === 'competences'}
+          onPress={() => {
+            this.selectTab('competences', 'navComp');
+          }}>
+          {this._renderNavigator({
+            id:'competences',
+            title: 'Erreicht',
+            component: CompetenceList,
+            passProps: {
+              ref: 'competences',
+              type: 'competences',
+              updateBadge: this.updateBadge
+            }
+          }, 'navComp')}
+        &lt;/TabNavigator.Item>
+        &lt;TabNavigator.Item
+          id='menu'
+          renderIcon={() => &lt;Icon name={Router.icons.menu} size={iconSize} color={iconColor} />}
+          renderSelectedIcon={() => &lt;Icon name={Router.icons.menu} size={iconSize} color={styles._.secondary} />}
+          selected={this.state.selectedTab === 'menu'}
+          onPress={() => {
+            this.selectTab('menu', 'navMenu');
+          }}>
+          {this._renderNavigator({
+            id: 'menu',
+            title: 'Menü',
+            component: Menu,
+            passProps: {
+              onLogout: () => { this.onLogout() }
+            }
+          }, 'navMenu')}
+        &lt;/TabNavigator.Item>
+      &lt;/TabNavigator>
+    );
+    }
+  }
+
+  /**
+   * Eventlistener for Android back button. Will pop the current navigator, if possible.
+   */
+  BackAndroid.addEventListener('hardwareBackPress', () => {
+    if (_navigator.getCurrentRoutes().length === 1  ) {
+       return false;
+    }
+    _navigator.pop();
+    return true;
+  });
+
+
+  AppRegistry.registerComponent('Lernreflex', () => Lernreflex);
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

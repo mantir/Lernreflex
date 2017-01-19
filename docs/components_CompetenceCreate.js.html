@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/CompetenceCreate.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/CompetenceCreate.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">import React, {Component} from 'react';
+import ReactNative, {
+  TouchableHighlight,
+  TouchableOpacity,
+  ListView,
+  ScrollView,
+  Text,
+  TextInput,
+  Platform,
+  View,
+  Alert,
+  NavigatorIOS,
+  Picker
+} from 'react-native';
+import KeyboardSpacer from 'react-native-keyboard-spacer';
+
+
+import {
+  styles,
+  Router,
+  lib,
+  Competence,
+  LearningTemplate,
+  SelectList,
+  User,
+  Loader,
+  InputScrollView
+} from 'Lernreflex/imports';
+
+/**
+ * Represents the view to create a competence.
+ * @extends React.Component
+ * @constructor
+ */
+
+class CompetenceCreate extends Component{
+  constructor(){
+    super();
+    this.state = {
+      title:'',
+      verb:'',
+      catchwords:[],
+      group:'',
+
+    };
+  }
+
+  /**
+  * Create the competence with the input data and store it to the API.
+  */
+  createCompetence(){
+    var competence = new Competence();
+    var user = new User();
+    var learningTemplate = new LearningTemplate();
+    var superCompetences = this.props.superCompetence ? [this.props.superCompetence] : [];
+    //console.log(this.state.title);
+    var _this = this;
+    let verb2 = '';
+    let verb = this.state.verb.split(' ... ');
+    if(verb[1]) {
+      verb2 = verb[1];
+    }
+    verb = verb[0];
+    let r = {'Tätigkeit': verb, 'Lernziel':this.state.title, 'Tags':this.state.catchwords.length > 0, 'Kategorie':this.state.group};
+    let empty = Object.keys(r).filter((k) => !r[k]);
+    if(empty.length) {
+      Alert.alert('Fehlende Infos.', 'Folgende Felder müssen noch ausgefüllt werden: ' + empty.join(', '), [
+        {text: 'Ok, mach ich.'},
+      ]);
+      return;
+    }
+    this.setState({loading:true});
+    let competenceTitle = ('Ich '+verb+' '+this.state.title+' '+verb2).trim();
+    user.isLoggedIn().done((u) => {
+      learningTemplate.save({
+        userName: u.username,
+        groupId: learningTemplate.courseContext,
+        selectedTemplate: this.state.group
+      })
+      .then(() => competence.save({
+        forCompetence: competenceTitle,
+        operator: this.state.verb,
+        catchwords: this.state.catchwords,
+        isGoal: this.props.type === 'goals',
+        subCompetences: [],
+        superCompetences: superCompetences,
+        learningProjectName: this.state.group
+      }))
+      .done(() => {
+        this.saveQuestions(competenceTitle);
+        let competence = new Competence();
+        competence.setItem('reloadGoals', true).then(() => {
+          this.props.navigator.pop();
+        })
+        /*if(this.props.afterCompetenceCreate) {
+          this.props.afterCompetenceCreate();
+        }*/
+      }, (error) => {
+        //Errorhandler
+        Alert.alert('Erstellen fehlgeschlagen', 'Das Lernziel konnte nicht gespeichert werden.', [
+          {text: 'Ok, schade'},
+        ]);
+        _this.setState({loading:false});
+      });
+    });
+  }
+
+  /**
+  * Save the default reflection questions to the competence
+  * @param competenceId {string}
+  */
+  saveQuestions(competenceId){
+    let u = new User();
+    let questions = lib.constants.generalCompetenceQuestions;
+    for(var i in questions){
+      let q = {
+        question: questions[i].text,
+        competenceId: competenceId
+      };
+      u.post('competences/questions', q).then((d) => {
+        console.log(d);
+      });
+    }
+  }
+
+  componentDidMount(){
+    console.log(this.props.afterCompetenceCreate);
+
+    this.unmounting = false;
+  }
+
+  componentWillUnmount(){
+    this.unmounting = true;
+  }
+
+  setState(obj){
+    if(this.unmounting) return;
+    super.setState(obj);
+  }
+
+  /**
+  * Remove a tag
+  */
+  removeTag(i){
+    this.state.catchwords.splice(i, 1); //nicht mit delete entfernen, length wird sonst nicht verändert
+    this.setState({catchwords:this.state.catchwords});
+  }
+
+  /**
+  * Add a tag to the list from the input
+  */
+  addTag(blurred){
+    console.log('blurred');
+    var tag = this.state.tag;
+    if(!tag || !tag.trim() || this.managedTag)
+    return;
+    this.managedTag = true;
+    this.state.catchwords.push(tag.trim());
+    setTimeout(function(){
+      this.managedTag = false;
+      this.setState({tag:'', catchwords: this.state.catchwords});
+      //if(!blurred) this.refs.tag.focus();
+    }.bind(this), 0);
+  }
+
+  /**
+  * Render the tags
+  * @param tags {array} list of the tags
+  * @return {array_of_ReactNative.TouchableHighlight}
+  */
+  _renderTags(tags){
+    var rows = [];
+
+    if(!tags.length)
+    return null;
+    for (var i in tags) {
+      rows.push(&lt;TouchableHighlight onPress={() => {this.removeTag(i)}} key={i} style={styles.comp.tagItem}>
+      &lt;Text style={styles.comp.tagItemText}>{tags[i]}&lt;/Text>
+    &lt;/TouchableHighlight>);
+  }
+  return &lt;View>
+    &lt;Text style={styles._.ml10}>Tags: &lt;/Text>
+    &lt;ScrollView
+      horizontal={false}
+      styles={styles.comp.tagItemsWrapper}
+      contentContainerStyle={[styles.comp.tagItems]}>
+      {rows}
+    &lt;/ScrollView>
+  &lt;/View>
+}
+
+/**
+* Render the Create button
+* @return {ReactNative.View|ReactNative.TouchableHighlight}
+*/
+_renderButton(){
+  if(!this.state.loading) {
+    return &lt;TouchableHighlight underlayColor={styles._.hoverBtn} style={[styles._.button, styles._.col]} onPress={() => {this.createCompetence()}}>
+      &lt;Text style={[styles._.buttonText, styles._.big]}>Erstellen&lt;/Text>
+    &lt;/TouchableHighlight>
+  } else {
+    return &lt;View style={styles._.col}>&lt;Loader color={styles._.primary} />&lt;/View>
+  }
+}
+
+/**
+* Render at the the title of the super competence, if the competence is created as a sub competence
+* @return {ReactNative.Text|null}
+*/
+_renderSuperCompetence(){
+  if(!this.props.superCompetence)
+  return null;
+  return &lt;Text style={styles.comp.superTitle}>{'Als Teil von: ' + this.props.superCompetence}&lt;/Text>
+}
+
+/**
+* Get the list of verbs
+* @return {array}
+*/
+getVerbs(){
+  let verbs = lib.constants.verbs.map(lib.functions.ich);
+  verbs.sort();
+  return verbs;
+}
+
+/**
+* Scroll to a component
+* @param refName {string} ref name of the component
+*/
+_scrollToBottom(refName) {
+  var _this = this;
+  if(Platform.OS != 'ios') return;
+  setTimeout(() => {
+    let scrollResponder = _this.refs.scroller.getScrollResponder();
+    scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
+      ReactNative.findNodeHandle(_this.refs[refName]),
+      10, //additionalOffset
+      true
+    );
+  }, 1);
+}
+
+
+/**
+* Executed when the select an action button is pressed
+*/
+selectPressed(){
+  if(this.refs.title)
+  this.refs.title.blur();
+  Router.route({
+    id:'select',
+    component: SelectList,
+    title: 'Tätigkeit auswählen',
+    passProps:{
+      placeholder: 'Ich ...',
+      elements: this.getVerbs(),
+      selected: ((el) => {
+        if(this.refs.title)
+          this.refs.title.focus();
+        this.setState({verb:el})
+      })
+    }
+  }, this.props.navigator)
+}
+
+
+/**
+* Render the competence create view
+* @return {ReactNative.View}
+*/
+render(){
+  var type = this.props.type;
+  let group = this.state.group;
+  let verb2 = '';
+  let verb = this.state.verb.split(' ... ');
+  if(verb[1]) {
+    verb2 = verb[1];
+  }
+  let ThisScrollView = Platform.OS == 'ios' ? InputScrollView : ScrollView;
+  verb = verb[0];
+  return &lt;View style={styles.wrapper}>
+    &lt;ThisScrollView keyboardDismissMode="interactive" keyboardShouldPersistTaps={true} ref="scroller">
+      {this._renderSuperCompetence()}
+      &lt;View style={[styles._.row, {marginTop:10}]}>
+        &lt;Text style={[styles._.col, {flex:0.1, fontSize:20, paddingLeft:10}]}>Ich&lt;/Text>
+        &lt;TouchableHighlight
+          underlayColor={styles._.secondary}
+          style={[styles._.col, {flex:0.8, marginRight:10}]}
+          onPress={() => {this.selectPressed()}}
+          selectedValue={this.state.verb.split(' ... ')[0]}>
+          &lt;View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
+            &lt;Text style={{fontSize:18}}>
+              {verb ? verb : 'Tätigkeit auswählen >'}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/TouchableHighlight>
+      &lt;/View>
+      {(() => {
+        if(this.state.verb) return &lt;View>&lt;View style={styles._.row}>
+          &lt;TextInput
+            ref="title"
+            autoCapitalize='none'
+            onChangeText={(title) => this.setState({title})}
+            value={this.state.title}
+            multiline={true}
+            returnKeyType='next'
+            numberOfLines={4}
+            style={[styles.comp.titleInput, {borderWidth:0, borderTopLeftRadius:0,borderTopRightRadius:0}]}
+            maxLength={styles.max.competenceTitle}
+            editable={!this.state.loading}
+            placeholder={this.props.inputTitle}>
+          &lt;/TextInput>
+        &lt;/View>
+        {(() => {
+          if(verb2) return &lt;View style={styles._.row}>
+            &lt;Text style={[styles._.col, {flex:1, fontSize:20, paddingLeft:10}]}>{verb2}.&lt;/Text>
+          &lt;/View>
+        })()}
+        &lt;View style={styles._.row}>
+          {this._renderTags(this.state.catchwords)}
+        &lt;/View>
+        &lt;View style={styles._.row}>
+          &lt;TextInput
+            ref="tag"
+            onChangeText={(tag) => this.setState({tag})}
+            onSubmitEditing={(event) => this.addTag()}
+            onBlur={() => this.addTag(true)}
+            value={this.state.tag}
+            multiline={false}
+            editable={!this.state.loading}
+            style={styles.comp.input}
+            maxLength={styles.max.competenceCatchwords}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            placeholder="Tags hinzufügen (Mit Weiter bestätigen)">
+          &lt;/TextInput>
+        &lt;/View>
+        &lt;View style={styles._.row}>
+          &lt;TextInput
+            ref="group"
+            onChangeText={(group) => this.setState({group})}
+            onSubmitEditing={(event) => {}}
+            value={this.state.group}
+            multiline={false}
+            onFocus={() => this._scrollToBottom('group')}
+            editable={!this.state.loading}
+            style={styles.comp.input}
+            defaultValue={group}
+            maxLength={styles.max.competenceGroup}
+            renderItem={({title}) => (
+              &lt;TouchableOpacity onPress={() => {this.setState({group: title})}}>
+                &lt;Text style={styles.itemText}>
+                  {title}
+                &lt;/Text>
+              &lt;/TouchableOpacity>
+            )}
+            placeholder="Einer Kategorie zuordnen">
+          &lt;/TextInput>
+        &lt;/View>
+        &lt;View style={styles._.row}>
+          {this._renderButton()}
+        &lt;/View>
+      &lt;/View>
+      })()}
+    &lt;/ThisScrollView>
+  {/*  &lt;KeyboardSpacer onToggle={(state) => console.log('TOGGLED', state)} />*/}
+  &lt;/View>
+}
+}
+
+module.exports = CompetenceCreate;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

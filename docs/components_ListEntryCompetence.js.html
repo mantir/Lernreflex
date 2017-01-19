@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/ListEntryCompetence.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/ListEntryCompetence.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">'use strict'
+/*
+* Rendert eine Zeile in einem Listview als Kompetenz
+*/
+import React, {
+  Component,
+} from 'react';
+import {
+  TouchableHighlight,
+  ListView,
+  Platform,
+  Image,
+  Text,
+  View,
+} from 'react-native';
+import {styles, Icon, Router, Loader} from 'Lernreflex/imports';
+
+/**
+ * Holds the markup for several list elements ocurring on different views in this app.
+ * To render a row, you need to pass a property rowData containing type = {one of the possible function names} without a leading _
+ * In the future the markup for a row could be transfered back into the belonging class,
+ * to make things more consistent
+ * @extends React.Component
+ * @constructor
+ */
+
+class ListEntryCompetence extends Component{
+  constructor(){
+    super();
+  }
+
+  /**
+  * Markup for user row
+  * @return {ReactNative.View}
+  */
+  _user(rowData){
+    return &lt;View>
+      &lt;View style={styles.list.rowContainer}>
+        &lt;View style={styles.list.textContainer}>
+          &lt;Icon name={Router.icons.person} size={30} color='#CCC' style={{flexDirection:'column', alignSelf:'flex-start', flex:1}} />
+          &lt;Text style={[styles.list.text, {flexDirection:'column', marginTop:5, flex:8}]}>
+            {rowData.name} {rowData.id == 'mySelf' ? '(Ich)' : ''}
+          &lt;/Text>
+        &lt;/View>
+      &lt;/View>
+      &lt;View style={styles.list.separator} />
+    &lt;/View>
+  }
+
+  /**
+  * Markup for badge row
+  * @return {ReactNative.View}
+  */
+  _badge(rowData){
+    return &lt;View>
+      &lt;View style={styles.list.rowContainer}>
+        &lt;Image
+          style={{height:50, width:50}}
+          resizeMode='contain'
+          source={{uri:rowData.png}}
+          />
+        &lt;View style={styles.list.textContainer}>
+          &lt;Text style={styles.list.text}>
+            {rowData.name}
+          &lt;/Text>
+          &lt;Text style={styles.list.right}>
+            {rowData.done ? &lt;Image
+              style={styles._.icon}
+              resizeMode='cover'
+              source={require('Lernreflex/img/checked.png')}
+              /> : ''}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    }
+
+    /**
+    * Markup for comment row
+    * @return {ReactNative.View}
+    */
+    _comment(rowData){
+      let date = new Date(rowData.created);
+      return &lt;View>
+        &lt;View style={styles._.row}>
+          &lt;Text style={[styles.list.text, styles._.col, {color:'#CCC', fontSize:12, paddingLeft:10, paddingRight:10, paddingTop:10}]}>
+            {rowData.user} - {date.getDate()}.{date.getMonth()}.{date.getFullYear()}, {date.getHours()}:{date.getMinutes()}
+          &lt;/Text>
+        &lt;/View>
+        &lt;View style={styles._.row}>
+          &lt;Text style={[styles.list.text, styles._.col, {paddingLeft:10, paddingRight:10, paddingBottom:10}]}>
+            {rowData.text}
+          &lt;/Text>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    }
+
+    /**
+    * Markup for competence row
+    * @return {ReactNative.View}
+    */
+    _competence(){
+      return &lt;View>
+        &lt;View style={styles.list.rowContainer}>
+          &lt;View style={styles.list.textContainer}>
+            &lt;Text style={styles.list.text}>
+              {this.props.rowData.text}
+            &lt;/Text>
+            &lt;Text style={styles.list.right}>
+              {this.props.rowData.percent}%
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    }
+
+    /**
+    * Markup for activity row
+    * @return {ReactNative.View}
+    */
+    _activity(rowData){
+      let isDone;
+      if(rowData.done) isDone = &lt;View style={styles.list.right, {justifyContent:'center', padding:5}}>
+        &lt;Image style={{width: 20, height: 20, justifyContent:'center', alignSelf:'center', flex:1}} resizeMode='contain' source={require('Lernreflex/img/checked.png')}>&lt;/Image>
+      &lt;/View>
+      return &lt;View style={styles._.col}>
+        &lt;View style={styles.list.rowContainer}>
+          &lt;View style={styles.list.textContainer}>
+            &lt;Text style={styles.list.text}>
+              {rowData.name}
+            &lt;/Text>
+            {isDone}
+            &lt;View style={styles.list.right, {justifyContent:'center', padding:5}}>
+              &lt;Icon name={Router.icons.comments} size={30} color='#222' style={{flexDirection:'column', justifyContent:'center', alignSelf:'center', flex:1}}>&lt;/Icon>
+            &lt;/View>
+          &lt;/View>
+        &lt;/View>
+
+      &lt;/View>
+    }
+
+    /**
+    * Markup for select list row
+    * @return {ReactNative.View}
+    */
+    _select(rowData){
+      if(typeof(rowData) != 'object') {
+        rowData = {'id':false, value:rowData};
+      }
+      return &lt;View style={styles._.col}>
+        &lt;View style={styles.list.rowContainer}>
+          &lt;View style={styles.list.textContainer}>
+            &lt;Text style={styles.list.text}>
+              {rowData.value}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    }
+
+    /**
+    * Markup for user, at the top of a view, if it's different than the current user.
+    * @return {ReactNative.View}
+    */
+    _currentUser(currentUser){
+      return &lt;View style={[styles._.row, {backgroundColor:styles._.secondary}]}>
+        &lt;Icon name={Router.icons.person} size={30} color='#FFF' style={{flexDirection:'column', marginLeft:20, alignSelf:'flex-start', flex:1}} />
+        &lt;Text style={[styles.list.headText, {flexDirection:'column', marginTop:4, flex:10}]}>
+          {currentUser.name}
+        &lt;/Text>
+      &lt;/View>
+    }
+
+    /**
+    * Render row by props.rowData.type
+    * @return {React.Component}
+    */
+    render(){
+      if(this.props.rowData == 'loader') {
+        if(Platform.OS == 'ios') {
+          return &lt;View style={styles._.col}>&lt;Loader />&lt;/View>
+        }
+        return null;
+      }
+      if(this.props.rowData.id == 'empty') {
+        return &lt;View style={[styles._.row]}>
+          &lt;View style={[styles._.col, {alignItems: 'center'}]}>
+            &lt;Text style={{fontSize:18, padding:20, justifyContent: 'center', alignItems: 'center', alignSelf:'center'}}>
+              {this.props.rowData.text}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+      }
+      this.type = this.props.rowData.type ? this.props.rowData.type : this.props.type;
+      if(!this.props.rowData) throw this.constructor.name+' needs a "rowData" object as property for type '+this.type;
+      return &lt;TouchableHighlight
+        underlayColor={this.props.underlayColor}
+        onPress={this.props.onPress}
+        style={this.props.style}>
+        {this['_'+this.type](this.props.rowData)}
+      &lt;/TouchableHighlight>
+    }
+  }
+
+  module.exports = ListEntryCompetence;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

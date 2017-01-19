@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Lernreflex Source: components/Admin.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Lernreflex</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles-_.html">styles~_</a></li><li><a href="module-styles-comp.html">styles~comp</a></li><li><a href="module-styles-user.html">styles~user</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-styles.html">styles</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Activity.html">Activity</a></li><li><a href="ActivityView.html">ActivityView</a></li><li><a href="Admin.html">Admin</a></li><li><a href="Badge.html">Badge</a></li><li><a href="BadgeList.html">BadgeList</a></li><li><a href="Competence.html">Competence</a></li><li><a href="CompetenceCreate.html">CompetenceCreate</a></li><li><a href="CompetenceList.html">CompetenceList</a></li><li><a href="CompetenceView.html">CompetenceView</a></li><li><a href="Course.html">Course</a></li><li><a href="InputScrollView.html">InputScrollView</a></li><li><a href="LearningTemplate.html">LearningTemplate</a></li><li><a href="Lernreflex.html">Lernreflex</a></li><li><a href="lib.html">lib</a></li><li><a href="ListEntryCompetence.html">ListEntryCompetence</a></li><li><a href="Loader.html">Loader</a></li><li><a href="Menu.html">Menu</a></li><li><a href="Model.html">Model</a></li><li><a href="Questions.html">Questions</a></li><li><a href="Router.html">Router</a></li><li><a href="SelectList.html">SelectList</a></li><li><a href="SuperComponent.html">SuperComponent</a></li><li><a href="User.html">User</a></li><li><a href="UserList.html">UserList</a></li><li><a href="UserLogin.html">UserLogin</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: components/Admin.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">import React, {
+  Component,
+} from 'react';
+import {
+  TouchableHighlight,
+  ListView,
+  TextInput,
+  ScrollView,
+  Text,
+  View,
+  NavigatorIOS,
+  Platform
+} from 'react-native';
+import {styles, Router, User, lib, Activity, Competence, Course, Loader, SelectList} from 'Lernreflex/imports';
+
+/**
+ * Represents the view for an admin. This is a fallback view to create competences
+ * and to link moodle activities and questions to them.
+ * Please use moodle to create and link competences and activities.
+ * @extends React.Component
+ * @constructor
+ */
+
+class Admin extends Component{
+
+  constructor(){
+    super();
+    this.state = {
+      loading:false,
+      printableName:'',
+      competences:'',
+      competenceForQuestions:'',
+      competenceForActivity: '',
+      activityId: '',
+      activityName: '',
+      courseName: '',
+      courseId: '',
+    };
+    this.render = this.render.bind(this);
+  }
+
+  rowPressed(rowData) {
+
+  }
+
+  renderRow(rowData){
+    return &lt;TouchableHighlight underlayColor={styles.list.liHeadHover} onPress={() => this.rowPressed(rowData)} style={styles.list.liHead}>
+      &lt;View>
+        &lt;View style={styles.list.rowContainer}>
+          &lt;View style={styles.list.textContainer}>
+            &lt;Text style={styles.list.headText}>
+              {rowData.title}
+            &lt;/Text>
+          &lt;/View>
+        &lt;/View>
+        &lt;View style={styles.list.separator} />
+      &lt;/View>
+    &lt;/TouchableHighlight>
+  }
+
+  _renderSaveCourseButton(){
+    if(!this.state.loading) {
+      return &lt;TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.createCourse()}>
+        &lt;Text style={[styles._.buttonText, styles._.big]}>Speichern&lt;/Text>
+      &lt;/TouchableHighlight>
+    } else {
+      return &lt;Loader color={styles._.primary} />
+    }
+  }
+
+  _renderSaveQuestionButton(){
+    if(!this.state.loading) {
+      return &lt;TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.saveQuestions()}>
+        &lt;Text style={[styles._.buttonText, styles._.big]}>Kompetenzfragen speichern&lt;/Text>
+      &lt;/TouchableHighlight>} else {
+        return &lt;Loader color={styles._.primary} />
+      }
+    }
+
+    _renderSaveActivityButton(){
+      if(!this.state.loading) {
+        return &lt;TouchableHighlight underlayColor={styles._.hoverBtn} style={styles._.button} onPress={() => this.saveActivity()}>
+          &lt;Text style={[styles._.buttonText, styles._.big]}>Aktivität Kompetenz zuordnen&lt;/Text>
+        &lt;/TouchableHighlight>} else {
+          return &lt;Loader color={styles._.primary} />
+        }
+      }
+
+      createCourse(){
+        let competences = this.state.competences.split(';');
+        let course_obj = {
+          courseId: this.state.courseId,
+          printableName: this.state.courseName,
+          competences: competences
+        };
+        let course = new Course();
+        this.setState({loading:true});
+        let _this = this;
+        course.save(course_obj).then((d) => {
+          _this.setState({loading:false});
+        });
+      }
+
+      saveQuestions(){
+        let u = new User();
+        let questions = lib.constants.generalCompetenceQuestions;
+        this.setState({loading:true});
+        for(var i in questions){
+          let q = {
+            question: questions[i].text,
+            competenceId: this.state.competenceForQuestions
+          };
+          u.post('competences/questions', q).then((d) => {
+            console.log(d);
+            this.setState({loading:false});
+          });
+        }
+      }
+
+      saveActivity(){
+        let user = new User();
+        let activity = new Activity();
+        let a = {url:this.state.activityId, name:this.state.activityName, icon:'-', qtip:'-'};
+        this.setState({loading:true});
+        activity.save(a).then(() => {
+          user.post('activities/links/competences/'+this.state.competenceForActivity, a).then((d) => {
+            this.setState({loading:false})
+          })
+        });
+      }
+
+      selectPressed(name, name2){
+        let elements = [];
+        let user = new User();
+        this.setState({loadingSelect: true});
+        let cb = (elements) => {
+          this.setState({loadingSelect: false});
+          Router.route({
+            id:'select',
+            component: SelectList,
+            title: name+' auswählen',
+            passProps:{
+              elements: elements,
+              selected: ((el) => {
+                let e = {};
+                e[name] = el.id;
+                if(name2)
+                e[name2] = el.value;
+                this.setState(e);
+              })
+            }
+          }, this.props.navigator);
+        }
+        if(name == 'activityId'){
+          let course = new Course(false);
+          let activity = new Activity(false);
+          user.isLoggedIn().then((u) => {
+            course.getCourses().then((courses) => {
+              console.log(courses);
+              if(courses &amp;&amp; courses.length) {
+                let promises = [];
+                for(var i in courses) {
+                  promises.push(activity.getCourseActivities(courses[i].courseid));
+                }
+                Promise.all(promises).then((together) => {
+                  console.log(together);
+                  together = together.map((el) => { return el.map((e) => { return {id:e.url, value:e.name}})}).filter((e) => e.length &lt; 10);
+                  elements = [];
+                  together.map((t) => {
+                    elements = [...elements, ...t];
+                  })
+                  cb(elements);
+                })
+              } else cb([]);
+            })
+          });
+        } else
+        if(name == 'competenceForActivity' || name == 'competenceForQuestions'){
+          let competence = new Competence(false);
+          user.isLoggedIn().then((u) => {
+            competence.getOverview().then((competences) => {
+              console.log(competences);
+              elements = [];
+              let fun = (list) => {
+                Object.keys(list).map((el) => {
+                  console.log(list, elements, el);
+                  list[el] = list[el].competences.map((e) => { return {id:e, value:e}})
+                  list[el].map((t) => {
+                    console.log(t);
+                    elements.push(t);
+                  })
+                });
+              }
+              if(competences &amp;&amp; competences.courses) {
+                fun(competences.courses);
+              }
+              if(competences &amp;&amp; competences.learningTemplates) {
+                fun(competences.learningTemplates);
+              }
+              console.log(elements);
+
+              cb(elements);
+            })
+          });
+        } else
+        if(name == 'courseId'){
+          let competence = new Competence(false);
+          user.isLoggedIn().then((u) => {
+            competence.getOverview().then((competences) => {
+              if(competences &amp;&amp; competences.courses) {
+                competences.courses.map((c) => {
+                  elements.push({id: c.courseId, value: c.printableName});
+                })
+              }
+              cb(elements);
+            })
+          });
+        }
+      }
+
+      render(){
+        let courseId = '';
+        let printableName = '';
+        let competences = '';
+        return &lt;ScrollView style={styles.wrapper}>
+          &lt;Text>Kompetenzen zu Kurs hinzufügen&lt;/Text>
+          &lt;View style={styles._.row}>
+            &lt;TouchableHighlight
+              underlayColor={styles._.secondary}
+              style={[styles._.col, {flex:0.8, marginRight:10}]}
+              onPress={() => this.selectPressed('courseId', 'courseName')}>
+              &lt;View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
+                &lt;Text style={{fontSize:18}}>
+                  {this.state.loadingSelect ? 'Lädt...' : (this.state.courseId ? this.state.courseName : 'Kurs für Kompetenzen wählen >')}
+                &lt;/Text>
+              &lt;/View>
+            &lt;/TouchableHighlight>
+          &lt;/View>
+          &lt;TextInput
+            ref="competences"
+            onChangeText={(competences) => this.setState({competences})}
+            value={this.state.competences}
+            multiline={true}
+            editable={!this.state.loading}
+            style={styles.comp.input}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            placeholder="Kompetenzen (Mit ; getrennt eintragen)">
+          &lt;/TextInput>
+          {this._renderSaveCourseButton()}
+          {/*&lt;TextInput
+            ref="competenceForQuestion"
+            onChangeText={(competenceForQuestion) => this.setState({competenceForQuestion})}
+            value={this.state.competenceForQuestion}
+            multiline={true}
+            editable={!this.state.loading}
+            style={styles.comp.input}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            placeholder="Kompetenz für Fragen">
+          &lt;/TextInput>*/}
+          &lt;View style={styles._.row}>
+            &lt;TouchableHighlight
+              underlayColor={styles._.secondary}
+              style={[styles._.col, {flex:0.8, marginRight:10}]}
+              onPress={() => this.selectPressed('competenceForQuestions')}>
+              &lt;View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
+                &lt;Text style={{fontSize:18}}>
+                  {this.state.loadingSelect ? 'Lädt...' : (this.state.competenceForQuestions ? this.state.competenceForQuestions : 'Kompetenz auswählen >')}
+                &lt;/Text>
+              &lt;/View>
+            &lt;/TouchableHighlight>
+          &lt;/View>
+          {this._renderSaveQuestionButton()}
+          &lt;View style={styles._.row}>
+            &lt;TouchableHighlight
+              underlayColor={styles._.secondary}
+              style={[styles._.col, {flex:0.8, marginRight:10}]}
+              onPress={() => this.selectPressed('activityId', 'activityName')}>
+              &lt;View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
+                &lt;Text style={{fontSize:18}}>
+                  {this.state.loadingSelect ? 'Lädt...' : (this.state.activityId ? this.state.activityName : 'Aktivitäts-URL auswählen >')}
+                &lt;/Text>
+              &lt;/View>
+            &lt;/TouchableHighlight>
+          &lt;/View>
+          &lt;View style={styles._.row}>
+            &lt;TouchableHighlight
+              underlayColor={styles._.secondary}
+              style={[styles._.col, {flex:0.8, marginRight:10}]}
+              onPress={() => this.selectPressed('competenceForActivity')}>
+              &lt;View style={{borderBottomWidth:1, padding:5, borderColor:'#000', flex:0}}>
+                &lt;Text style={{fontSize:18}}>
+                  {this.state.loadingSelect ? 'Lädt...' : (this.state.competenceForActivity ? this.state.competenceForActivity : 'Kompetenz für Aktivität wählen >')}
+                &lt;/Text>
+              &lt;/View>
+            &lt;/TouchableHighlight>
+          &lt;/View>
+          {this._renderSaveActivityButton()}
+        &lt;/ScrollView>
+      }
+    }
+    /*    &lt;TextInput
+    ref="courseId"
+    onChangeText={(courseId) => this.setState({courseId})}
+    value={this.state.courseId}
+    multiline={false}
+    editable={!this.state.loading}
+    style={styles.comp.input}
+    returnKeyType="next"
+    blurOnSubmit={false}
+    placeholder="courseId">
+    &lt;/TextInput>
+    &lt;TextInput
+    ref="printableName"
+    onChangeText={(printableName) => this.setState({printableName})}
+    value={this.state.printableName}
+    multiline={false}
+    editable={!this.state.loading}
+    style={styles.comp.input}
+    returnKeyType="next"
+    blurOnSubmit={false}
+    placeholder="printableName">
+    &lt;/TextInput>*/
+    /*&lt;TextInput
+    ref="activityId"
+    onChangeText={(activityId) => this.setState({activityId})}
+    value={this.state.activityId}
+    multiline={true}
+    editable={!this.state.loading}
+    style={styles.comp.input}
+    returnKeyType="next"
+    blurOnSubmit={false}
+    placeholder="Aktivitäts-URL">
+    &lt;/TextInput>*/
+
+
+    module.exports = Admin;
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Martin Kapp
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on 12.01.2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>
