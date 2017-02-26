@@ -13,7 +13,7 @@ To use the app, a running [COMPBASE](https://github.com/uzuzjmd/COMPBASE) and a 
 
 ## Troubleshooting
 
-On Windows `npm install` may fail in the end with 'Looks like you installed react-native globally'. Then you need to issue the commands:  `node generate-android.js` and `react-native link` manually.
+On Windows `npm install` may fail in the end with 'Looks like you installed react-native globally', then you need to issue the command `react-native link` manually.
 
 ## Generate documentation
 The documentation can be generated using:
