@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "postinstall": "node ./generate-android.js && node ./generate-ios.js && react-native link"
+    "postinstall": "node ./generate-android.js && react-native link"
   },
   "dependencies": {
     "react": "15.3.2",
