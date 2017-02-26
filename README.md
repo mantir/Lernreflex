@@ -9,7 +9,7 @@ Then you need the React Native CLI. Install globally with: `npm install -g react
 And then it's all npm, so just download the code and do `npm install`.
 
 For further instructions how to run a React Native app, please have a look at their [docs](https://facebook.github.io/react-native/).
-To use the app, a running [COMPBASE](https://github.com/uzuzjmd/COMPBASE) and a [Moodle](https://github.com/moodle/moodle) with the [COMPBASE-Plugin](https://github.com/uzuzjmd/COMPBASE/tree/master/competence-lms-adaptors/moodle) is required. The path to the API must be specified in the models/Model.js.
+To use the app, a running [COMPBASE](https://github.com/uzuzjmd/COMPBASE) and a [Moodle](https://github.com/moodle/moodle) with the [COMPBASE-Plugin](https://github.com/uzuzjmd/COMPBASE/tree/master/competence-lms-adaptors/moodle) is required. The ip or url to the API must be specified in the `localip.js` (without protocol and port, if you want to make changes there you have to change the code in the initialization in `models/Model.js`)
 
 ## Generate documentation
 The documentation can be generated using:
