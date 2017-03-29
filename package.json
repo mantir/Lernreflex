@@ -7,8 +7,8 @@
     "postinstall": "node ./generate-android.js && react-native link"
   },
   "dependencies": {
-    "react": "15.3.2",
-    "react-native": "^0.33.1",
+    "react": "^15.4.2",
+    "react-native": "^0.42.3",
     "react-native-autocomplete-input": "^1.0.0",
     "react-native-circular-progress": "0.0.7",
     "react-native-keyboard-spacer": "^0.3.0",
